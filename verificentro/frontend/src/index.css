@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Paleta de la marca. Se declara una vez aquí y queda disponible como
+   utilidades de Tailwind en toda la app: bg-guinda, text-verde, border-dorado.
+   Los valores salen del manual del Verificentro y del prototipo de Figma.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-guinda: #9e1b45;
+  --color-guinda-oscuro: #7a1235;
+  --color-guinda-claro: #f7e9ee;
+
+  --color-verde: #1d4a3d;
+  --color-verde-claro: #e8f0ed;
+
+  --color-dorado: #b3803d;
+  --color-dorado-claro: #f6efe4;
+
+  --color-crema: #f5f3f0;
+  --color-borde: #e0ddd9;
+
+  --color-exito: #22894f;
+  --color-alerta: #c7801f;
+  --color-error: #c73333;
+  --color-info: #33669e;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body,
+#raiz {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-crema);
+  color: #29292b;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Clases de uso repetido. Todo lo demás va con utilidades en el componente. */
+@layer components {
+  .tarjeta {
+    @apply rounded-2xl border border-borde bg-white;
+  }
+
+  .campo {
+    @apply w-full rounded-lg border border-borde bg-white px-3.5 py-2.5
+           text-sm outline-none transition
+           focus:border-guinda focus:ring-2 focus:ring-guinda/20
+           disabled:bg-crema disabled:text-neutral-400;
+  }
+
+  .campo-error {
+    @apply border-error focus:border-error focus:ring-error/20;
+  }
+
+  .etiqueta {
+    @apply mb-1.5 block text-xs font-bold tracking-wide text-neutral-500;
+  }
+
+  /* OJO: en Tailwind 4 no se puede hacer @apply de una clase definida en
+     @layer components (solo de utilidades). Por eso cada botón repite los
+     estilos base en lugar de componer sobre `.boton`. */
+  .boton-principal {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
+           text-sm font-bold transition
+           bg-guinda text-white hover:bg-guinda-oscuro
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .boton-secundario {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
+           text-sm font-bold transition
+           border border-borde bg-white text-neutral-600 hover:bg-crema
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .pastilla {
+    @apply inline-flex items-center rounded-full px-2.5 py-1
+           text-[11px] font-bold whitespace-nowrap;
+  }
+}

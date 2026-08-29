@@ -1,0 +1,68 @@
+# ---------------------------------------------------------------------------
+#  Secretos — NUNCA se suben
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credenciales*.json
+
+# ---------------------------------------------------------------------------
+#  Python
+# ---------------------------------------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ---------------------------------------------------------------------------
+#  Node / React
+# ---------------------------------------------------------------------------
+node_modules/
+dist/
+build/
+.vite/
+*.local
+npm-debug.log*
+yarn-error.log*
+
+# ---------------------------------------------------------------------------
+#  Base de datos
+# ---------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+# Respaldos: pueden traer datos personales de clientes. Fuera del repositorio.
+*.sql.gz
+respaldos/
+dumps/
+
+# ---------------------------------------------------------------------------
+#  Editores y sistema operativo
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---------------------------------------------------------------------------
+#  Archivos de trabajo que no son código
+# ---------------------------------------------------------------------------
+# Tarjetas de circulación, fotos de clientes y cualquier documento con datos
+# personales: se quedan fuera del repositorio.
+adjuntos/
+uploads/
+*.jpg
+*.jpeg
+*.png
+!docs/**/*.png
