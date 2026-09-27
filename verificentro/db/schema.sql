@@ -233,8 +233,22 @@ CREATE TABLE dias_no_laborables (
 
 CREATE TABLE config_citas (
   id                    TINYINT UNSIGNED NOT NULL DEFAULT 1,
-  duracion_bloque_min   SMALLINT UNSIGNED NOT NULL DEFAULT 30,
-  cupos_por_bloque      TINYINT  UNSIGNED NOT NULL DEFAULT 2,
+
+  -- 20 min y no 15: con una sola línea, si un auto se atora todos se
+  -- recorren. 15 es el mejor caso, no el promedio.
+  duracion_bloque_min   SMALLINT UNSIGNED NOT NULL DEFAULT 20,
+
+  -- Una línea = un auto a la vez.
+  cupos_por_bloque      TINYINT  UNSIGNED NOT NULL DEFAULT 1,
+
+  -- Cada cuántos bloques se ofrece uno para cita. Con 3 y bloques de 20 min
+  -- queda una cita por hora, y los otros dos espacios se dejan libres para
+  -- quien llega sin avisar, que es como llega casi toda la gente.
+  --   1 = toda la agenda para citas
+  --   2 = intercalado estricto, uno sí y uno no
+  --   3 = una cita por hora  (valor de arranque)
+  bloques_por_cita      TINYINT  UNSIGNED NOT NULL DEFAULT 3,
+
   anticipacion_max_dias SMALLINT UNSIGNED NOT NULL DEFAULT 30,
   anticipacion_min_horas SMALLINT UNSIGNED NOT NULL DEFAULT 2,
   tolerancia_retardo_min SMALLINT UNSIGNED NOT NULL DEFAULT 15,
@@ -242,8 +256,9 @@ CREATE TABLE config_citas (
   CONSTRAINT ck_config_fila_unica CHECK (id = 1)
 ) ENGINE=InnoDB;
 
--- Los cupos NO deben ser toda la capacidad del día: hay que dejar lugar a
--- quien llega sin cita. `cupos_por_bloque` es la parte reservada a citas.
+-- Estos valores se cambian con un UPDATE, sin tocar el código:
+--   UPDATE config_citas SET bloques_por_cita = 2 WHERE id = 1;   -- más citas
+--   UPDATE config_citas SET duracion_bloque_min = 15 WHERE id = 1;
 
 
 CREATE TABLE citas (

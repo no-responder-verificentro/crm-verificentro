@@ -5,6 +5,7 @@ import { useSesion } from "../contexto/Sesion";
 const SECCIONES = [
   { a: "/",               texto: "Dashboard",      permiso: "ver_dashboard" },
   { a: "/clientes",       texto: "Clientes",       permiso: "ver_clientes" },
+  { a: "/citas",          texto: "Citas",          permiso: "ver_citas" },
   { a: "/verificaciones", texto: "Verificaciones", permiso: "ver_verificaciones" },
   { a: "/recordatorios",  texto: "Recordatorios",  permiso: "ver_recordatorios" },
   { a: "/chatbot",        texto: "Chatbot",        permiso: "ver_chatbot" },

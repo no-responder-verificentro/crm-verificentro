@@ -2,15 +2,26 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./componentes/Layout";
 import RutaProtegida from "./componentes/RutaProtegida";
+import Chatbot from "./paginas/Chatbot";
+import Citas from "./paginas/Citas";
+import Consulta from "./paginas/Consulta";
+import Empleados from "./paginas/Empleados";
 import ClienteNuevo from "./paginas/ClienteNuevo";
+import Dashboard from "./paginas/Dashboard";
+import FichaVehiculo from "./paginas/FichaVehiculo";
 import Clientes from "./paginas/Clientes";
 import EnConstruccion from "./paginas/EnConstruccion";
 import Login from "./paginas/Login";
+import Recordatorios from "./paginas/Recordatorios";
+import Reportes from "./paginas/Reportes";
+import Verificaciones from "./paginas/Verificaciones";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/entrar" element={<Login />} />
+      {/* Pública: es a donde llega el cliente desde el correo. */}
+      <Route path="/consulta" element={<Consulta />} />
 
       <Route
         element={
@@ -19,20 +30,16 @@ export default function App() {
           </RutaProtegida>
         }
       >
-        <Route index element={<EnConstruccion titulo="Panel de control"
-          detalle="Los indicadores y la tabla de seguimiento se conectan cuando esté el job de recordatorios." />} />
+        <Route index element={<Dashboard />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="clientes/nuevo" element={<ClienteNuevo />} />
-        <Route path="vehiculos/:id" element={<EnConstruccion titulo="Ficha del vehículo"
-          detalle="Historial de verificaciones y bitácora de recordatorios." />} />
-        <Route path="verificaciones" element={<EnConstruccion titulo="Verificaciones"
-          detalle="La API ya está lista; falta conectar la pantalla." />} />
-        <Route path="recordatorios" element={<EnConstruccion titulo="Recordatorios"
-          detalle="Pendiente el job que llena la cola." />} />
-        <Route path="chatbot" element={<EnConstruccion titulo="Chatbot" />} />
-        <Route path="reportes" element={<EnConstruccion titulo="Reportes" />} />
-        <Route path="empleados" element={<EnConstruccion titulo="Empleados y permisos"
-          detalle="La API ya está lista; falta conectar la pantalla." />} />
+        <Route path="citas" element={<Citas />} />
+        <Route path="vehiculos/:id" element={<FichaVehiculo />} />
+        <Route path="verificaciones" element={<Verificaciones />} />
+        <Route path="recordatorios" element={<Recordatorios />} />
+        <Route path="chatbot" element={<Chatbot />} />
+        <Route path="reportes" element={<Reportes />} />
+        <Route path="empleados" element={<Empleados />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

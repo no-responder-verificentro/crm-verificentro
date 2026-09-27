@@ -16,12 +16,16 @@ const ContextoSesion = createContext(null);
 /** Qué puede hacer cada perfil. Espeja la matriz de permisos del backend. */
 const PERMISOS = {
   administrador: [
-    "ver_dashboard", "ver_clientes", "capturar", "editar_contacto",
+    "ver_dashboard", "ver_clientes", "ver_citas", "capturar", "editar_contacto",
     "ver_verificaciones", "ver_recordatorios", "ver_chatbot",
     "ver_reportes", "ver_empleados",
   ],
-  tecnico: ["ver_dashboard", "ver_clientes", "capturar", "ver_verificaciones"],
-  atencion: ["ver_clientes", "ver_verificaciones", "ver_chatbot"],
+  tecnico: [
+    "ver_dashboard", "ver_clientes", "ver_citas", "capturar",
+    "ver_verificaciones",
+  ],
+  // Atención agenda citas por el chatbot, así que necesita ver la agenda.
+  atencion: ["ver_clientes", "ver_citas", "ver_verificaciones", "ver_chatbot"],
 };
 
 export function ProveedorSesion({ children }) {

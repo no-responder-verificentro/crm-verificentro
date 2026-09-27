@@ -114,7 +114,24 @@ function conParametros(ruta, parametros) {
   return `${ruta}?${new URLSearchParams(limpios)}`;
 }
 
+/**
+ * Descarga un archivo. No se puede usar un <a href> normal porque el endpoint
+ * pide el token en la cabecera, y un enlace del navegador no la manda.
+ */
+async function descargar(ruta) {
+  const respuesta = await fetch(`${BASE}${ruta}`, {
+    headers: { Authorization: `Bearer ${leerToken()}` },
+  });
+  if (!respuesta.ok) {
+    throw new ErrorApi(
+      mensajeDeError(null, respuesta.status), respuesta.status
+    );
+  }
+  return respuesta.text();
+}
+
 export const api = {
+  descargar,
   obtener: (ruta, parametros) => peticion(conParametros(ruta, parametros)),
   crear: (ruta, datos) =>
     peticion(ruta, { method: "POST", body: JSON.stringify(datos) }),
