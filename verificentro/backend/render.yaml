@@ -1,0 +1,47 @@
+# Plano de Render. Con esto, al conectar el repositorio Render ya sabe cómo
+# construir y arrancar el backend; no hay que llenar formularios.
+#
+# Las variables marcadas sync:false se capturan a mano en el panel: son
+# secretos y NO deben vivir en el repositorio.
+
+services:
+  - type: web
+    name: verificentro-api
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # $PORT lo asigna Render; no se puede fijar uno.
+    # --host 0.0.0.0 es obligatorio: con 127.0.0.1 nadie lo alcanza.
+    startCommand: uvicorn app.main:aplicacion --host 0.0.0.0 --port $PORT
+    healthCheckPath: /salud
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: ENTORNO
+        value: produccion
+      - key: CANALES_ACTIVOS
+        value: '["correo"]'
+      - key: PROVEEDOR_CORREO
+        value: smtp
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PUERTO
+        value: "587"
+      - key: DB_URL
+        sync: false
+      - key: JWT_SECRETO
+        generateValue: true
+      - key: SMTP_USUARIO
+        sync: false
+      - key: SMTP_CONTRASENA
+        sync: false
+      - key: CORREO_REMITENTE
+        sync: false
+      - key: URL_PUBLICA
+        sync: false
+      - key: URL_CONSULTA
+        sync: false
+      - key: ORIGENES_PERMITIDOS
+        sync: false

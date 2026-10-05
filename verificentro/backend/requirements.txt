@@ -1,0 +1,19 @@
+fastapi>=0.115
+# uvicorn a secas, NO uvicorn[standard]: ese instala httptools y watchfiles,
+# que son extensiones en C. Con Python 3.14 en Windows provocan una violación
+# de acceso (código 0xC0000005) y el servidor muere sin dar ningún mensaje.
+# La versión pura de Python es un poco más lenta y ni se nota en desarrollo.
+uvicorn>=0.30
+sqlalchemy>=2.0
+pymysql>=1.1
+pydantic[email]>=2.7
+pydantic-settings>=2.3
+pyjwt>=2.8
+bcrypt>=4.1
+python-multipart>=0.0.9
+alembic>=1.13
+# Cliente HTTP: lo usa el adaptador de WhatsApp y también las pruebas.
+httpx>=0.27
+
+# desarrollo
+pytest>=8.0
