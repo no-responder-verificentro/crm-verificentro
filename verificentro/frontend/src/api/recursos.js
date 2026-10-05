@@ -50,6 +50,9 @@ export const recordatorios = {
   pausar: (id, motivo) => api.crear(`/recordatorios/${id}/pausar`, { motivo }),
   reanudar: (id) => api.crear(`/recordatorios/${id}/reanudar`, {}),
   cancelar: (id) => api.crear(`/recordatorios/${id}/cancelar`, {}),
+  // Los mismos procesos que corren solos cada mañana, disparados a mano.
+  generar: (dias = 90) => api.crear(`/recordatorios/generar?dias=${dias}`, {}),
+  enviar: () => api.crear("/recordatorios/enviar", {}),
 };
 
 export const panel = {

@@ -89,17 +89,72 @@ export default function Recordatorios() {
     }
   }
 
+  const [trabajando, setTrabajando] = useState(null);
+
+  async function revisar() {
+    setError(null);
+    setTrabajando("revisar");
+    try {
+      const r = await api.generar(90);
+      setAviso(
+        r.creados > 0
+          ? `Se prepararon ${r.creados} avisos nuevos.` +
+            (r.cancelados ? ` Se cancelaron ${r.cancelados} de clientes que ya verificaron.` : "")
+          : "Revisado. No hay avisos nuevos por preparar: nadie cumple fecha en los próximos 90 días." +
+            (r.cancelados ? ` Se cancelaron ${r.cancelados} de clientes que ya verificaron.` : "")
+      );
+      cargar();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setTrabajando(null);
+    }
+  }
+
+  async function enviarAhora() {
+    setError(null);
+    setTrabajando("enviar");
+    try {
+      const r = await api.enviar();
+      setAviso(
+        r.enviados > 0
+          ? `Se enviaron ${r.enviados} avisos.` +
+            (r.fallidos ? ` ${r.fallidos} no se pudieron entregar.` : "")
+          : "No había nada por enviar en este momento."
+      );
+      cargar();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setTrabajando(null);
+    }
+  }
+
   if (cargando) return <Cargando texto="Cargando recordatorios…" />;
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-3xl font-bold text-guinda-oscuro">Recordatorios</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Lo que está por salir y lo que ya salió. Se cancela solo si el cliente
-          verifica antes. Cambiar el texto de una plantilla de WhatsApp requiere
-          aprobación de Meta.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-guinda-oscuro">Recordatorios</h1>
+          <p className="mt-1 max-w-2xl text-sm text-neutral-500">
+            Lo que está por salir y lo que ya salió. Se cancela solo si el
+            cliente verifica antes.
+          </p>
+        </div>
+
+        {puede("editar_contacto") && (
+          <div className="flex shrink-0 gap-3">
+            <button onClick={revisar} className="boton-secundario"
+                    disabled={Boolean(trabajando)}>
+              {trabajando === "revisar" ? "Revisando…" : "Revisar a quién le toca"}
+            </button>
+            <button onClick={enviarAhora} className="boton-principal"
+                    disabled={Boolean(trabajando)}>
+              {trabajando === "enviar" ? "Enviando…" : "Enviar ahora"}
+            </button>
+          </div>
+        )}
       </div>
 
       <Aviso>{error}</Aviso>
@@ -142,10 +197,11 @@ export default function Recordatorios() {
         titulo="En cola"
         detalle="Se puede pausar cualquier envío antes de que salga."
         vacio={{
-          titulo: "No hay nada programado en los próximos 30 días",
+          titulo: "No hay avisos programados en los próximos 30 días",
           detalle:
-            "Es normal: el job solo genera cuando a alguien le toca un aviso ese día exacto. " +
-            "Para ver lo que viene más adelante, corre: python -m jobs.generar_recordatorios --dias 90",
+            "Es normal. A cada vehículo se le avisa solo en cinco momentos de " +
+            "su periodo, así que la mayoría de los días no hay nada que mandar. " +
+            "Si quieres adelantarte, usa «Revisar a quién le toca».",
         }}
         filas={cola}
         columnas={["SALE", "CLIENTE", "PLACA", "CANAL", "AVISO", "ESTADO", ""]}
@@ -202,8 +258,11 @@ export default function Recordatorios() {
         titulo="Últimos envíos"
         detalle="En WhatsApp el «leído» solo llega si el cliente tiene activadas las palomitas azules. En correo se mide el clic, no la apertura."
         vacio={{
-          titulo: "Todavía no se ha enviado nada",
-          detalle: "Corre: python -m jobs.enviar_pendientes",
+          titulo: "Todavía no se ha enviado ningún aviso",
+          detalle:
+            "En cuanto salga el primero aparecerá aquí, con la hora y si llegó. " +
+            "Si ya hay avisos en cola y quieres mandarlos de una vez, usa " +
+            "«Enviar ahora».",
         }}
         filas={historial}
         columnas={["FECHA", "CLIENTE", "PLACA", "CANAL", "AVISO", "ENTREGA"]}
@@ -237,6 +296,21 @@ export default function Recordatorios() {
         )}
       />
 
+      {puede("editar_contacto") && (
+        <div className="rounded-xl border border-borde bg-white px-5 py-4 text-sm">
+          <span className="font-bold text-guinda">Cómo funcionan los botones</span>
+          <p className="mt-1 text-neutral-600">
+            <strong>Revisar a quién le toca</strong> busca a los clientes con
+            fecha próxima y prepara sus avisos, sin mandar nada. Descarta solo
+            a quienes ya verificaron.{" "}
+            <strong>Enviar ahora</strong> manda los que ya tocaba enviar.
+          </p>
+          <p className="mt-1 text-neutral-500">
+            Puedes usarlos cuando quieras; no se duplican los avisos.
+          </p>
+        </div>
+      )}
+
       <div className="rounded-xl border border-dorado/45 bg-dorado-claro px-5 py-4 text-sm">
         <span className="font-bold text-dorado">Nota</span>{" "}
         <span className="text-guinda-oscuro">
@@ -259,7 +333,8 @@ function Panel({ titulo, detalle, filas, columnas, pintar, vacio }) {
       {filas.length === 0 ? (
         <Vacio titulo={vacio.titulo} detalle={vacio.detalle} />
       ) : (
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-3xl text-sm">
           <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
             <tr>
               {columnas.map((c, i) => (
@@ -273,6 +348,7 @@ function Panel({ titulo, detalle, filas, columnas, pintar, vacio }) {
             ))}
           </tbody>
         </table>
+          </div>
       )}
     </section>
   );

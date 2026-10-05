@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -48,6 +48,23 @@ class ResumenRecordatorios(BaseModel):
     tasa_entrega: float
     no_entregados: int
     contactos_no_localizables: int
+
+
+class ResultadoGeneracion(BaseModel):
+    """Lo que hizo una corrida de generación, para contarlo en pantalla."""
+
+    desde: date
+    hasta: date
+    creados: int = 0
+    duplicados: int = 0
+    cancelados: int = 0
+    sin_contacto: int = 0
+
+
+class ResultadoEnvio(BaseModel):
+    enviados: int = 0
+    fallidos: int = 0
+    contactos_marcados: int = 0
 
 
 class MotivoPausa(BaseModel):

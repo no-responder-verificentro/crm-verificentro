@@ -97,7 +97,8 @@ export default function FichaVehiculo() {
             detalle="En cuanto se registre la primera, aparecerá aquí y el vehículo dejará de recibir recordatorios de ese periodo."
           />
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-3xl text-sm">
             <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
               <tr>
                 <th className="px-6 py-3">FECHA</th>
@@ -130,6 +131,7 @@ export default function FichaVehiculo() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
 

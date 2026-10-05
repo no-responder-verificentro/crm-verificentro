@@ -11,6 +11,8 @@ from app.config import obtener_config
 from app.dependencias import Sesion, consulta, solo_admin
 from app.dominio.calendario import ventanas_del_anio
 from app.esquemas.recordatorio import (
+    ResultadoEnvio,
+    ResultadoGeneracion,
     MotivoPausa,
     RecordatorioEnLista,
     RecordatorioPublico,
@@ -105,6 +107,48 @@ def resumen(sesion: Sesion) -> ResumenRecordatorios:
         tasa_entrega=round(int(entregados or 0) / total * 100, 1) if total else 0.0,
         no_entregados=int(fallidos or 0),
         contactos_no_localizables=int(no_localizables or 0),
+    )
+
+
+# --------------------------------------------------------------------------
+#  Ejecutar los procesos desde la pantalla
+# --------------------------------------------------------------------------
+#  Los mismos que corren solos cada mañana, pero disparados a mano. Hacen
+#  falta por dos razones: para que nadie tenga que abrir una terminal, y
+#  porque el plan gratuito de Render no tiene tareas programadas.
+# --------------------------------------------------------------------------
+
+@router.post("/generar", response_model=ResultadoGeneracion,
+             dependencies=[Depends(solo_admin)])
+def generar(
+    sesion: Sesion,
+    dias: int = Query(default=1, ge=1, le=120,
+                      description="Cuántos días hacia adelante revisar."),
+) -> ResultadoGeneracion:
+    """Revisa a quién le toca un aviso y llena la cola. NO envía nada."""
+    inicio = date.today()
+    total = ResultadoGeneracion(desde=inicio, hasta=inicio)
+
+    for n in range(dias):
+        dia = inicio + timedelta(days=n)
+        r = servicio.generar_del_dia(sesion, dia)
+        total.creados += r.creados
+        total.duplicados += r.duplicados
+        total.cancelados += r.cancelados
+        total.sin_contacto += r.sin_consentimiento
+        total.hasta = dia
+
+    return total
+
+
+@router.post("/enviar", response_model=ResultadoEnvio,
+             dependencies=[Depends(solo_admin)])
+def enviar(sesion: Sesion) -> ResultadoEnvio:
+    """Manda lo que ya está en la cola y a lo que ya le tocaba salir."""
+    r = servicio.enviar_pendientes(sesion, silencioso=True)
+    return ResultadoEnvio(
+        enviados=r.enviados, fallidos=r.fallidos,
+        contactos_marcados=r.contactos_marcados,
     )
 
 

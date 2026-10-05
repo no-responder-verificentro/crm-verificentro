@@ -160,3 +160,45 @@ class TestPanel:
         r = api.get(PANEL + "/grafica", headers=como_tecnico)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
+
+
+class TestEjecutarDesdeLaPantalla:
+    """Los mismos procesos que corren solos, disparados con un botón.
+
+    Hacen falta porque el usuario final no va a abrir una terminal, y porque
+    el plan gratuito de Render no tiene tareas programadas.
+    """
+
+    def test_generar_devuelve_el_resumen(self, api, sesion_bd, como_admin):
+        with sesion_bd() as s:
+            _cliente_y_auto(s, "YUN-047-A", "3N1CB51S62K222173")
+
+        r = api.post(f"{REC}/generar?dias=120", headers=como_admin)
+        assert r.status_code == 200
+        datos = r.json()
+        assert datos["creados"] >= 0
+        assert "desde" in datos and "hasta" in datos
+
+    def test_generar_dos_veces_reporta_duplicados(self, api, sesion_bd,
+                                                  como_admin):
+        with sesion_bd() as s:
+            _cliente_y_auto(s, "YUN-047-A", "3N1CB51S62K222173")
+
+        primera = api.post(f"{REC}/generar?dias=120", headers=como_admin).json()
+        segunda = api.post(f"{REC}/generar?dias=120", headers=como_admin).json()
+        if primera["creados"]:
+            assert segunda["creados"] == 0
+            assert segunda["duplicados"] == primera["creados"]
+
+    def test_enviar_devuelve_cuantos_salieron(self, con_cola, como_admin):
+        r = con_cola.post(f"{REC}/enviar", headers=como_admin)
+        assert r.status_code == 200
+        assert "enviados" in r.json()
+
+    def test_el_tecnico_no_puede_dispararlos(self, api, como_tecnico):
+        assert api.post(f"{REC}/generar", headers=como_tecnico).status_code == 403
+        assert api.post(f"{REC}/enviar", headers=como_tecnico).status_code == 403
+
+    def test_el_rango_tiene_tope(self, api, como_admin):
+        assert api.post(f"{REC}/generar?dias=500",
+                        headers=como_admin).status_code == 422

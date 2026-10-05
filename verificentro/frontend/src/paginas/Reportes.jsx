@@ -66,7 +66,9 @@ export default function Reportes() {
       {datos && (
         <>
           <Efectividad datos={datos.efectividad} />
-          <div className="grid gap-5 lg:grid-cols-2">
+          {/* Dos tablas anchas no caben lado a lado hasta pantallas
+              muy grandes; antes de eso se apilan. */}
+          <div className="grid gap-5 2xl:grid-cols-2">
             <Cumplimiento filas={datos.cumplimiento} />
             <Canales filas={datos.canales} />
           </div>
@@ -175,7 +177,8 @@ function Cumplimiento({ filas }) {
           Cuántos del padrón verificaron dentro de su periodo.
         </p>
       </header>
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-md text-sm">
         <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
           <tr>
             <th className="px-6 py-3">DÍGITOS</th>
@@ -208,6 +211,7 @@ function Cumplimiento({ filas }) {
           ))}
         </tbody>
       </table>
+      </div>
     </section>
   );
 }
@@ -221,7 +225,8 @@ function Canales({ filas }) {
           Si un canal baja mucho, conviene depurar esos contactos.
         </p>
       </header>
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-md text-sm">
         <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
           <tr>
             <th className="px-6 py-3">CANAL</th>
@@ -248,6 +253,7 @@ function Canales({ filas }) {
           ))}
         </tbody>
       </table>
+      </div>
     </section>
   );
 }

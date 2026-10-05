@@ -120,10 +120,11 @@ export default function Dashboard() {
         {filas.length === 0 ? (
           <Vacio
             titulo="Nada que mostrar con ese filtro"
-            detalle="Si acabas de instalar el sistema, da de alta clientes o corre el script de datos de prueba."
+            detalle="Si el sistema es nuevo, empieza dando de alta clientes desde la sección Clientes."
           />
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-3xl text-sm">
             <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
               <tr>
                 <th className="px-6 py-3">CLIENTE</th>
@@ -173,6 +174,7 @@ export default function Dashboard() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </section>
     </div>

@@ -123,7 +123,8 @@ export default function Citas() {
                 detalle="Los clientes pueden apartar desde el chatbot, o el mostrador puede hacerlo con los horarios de arriba."
               />
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+          <table className="w-full min-w-3xl text-sm">
                 <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
                   <tr>
                     <th className="px-6 py-3">HORA</th>
@@ -197,6 +198,7 @@ export default function Citas() {
                   ))}
                 </tbody>
               </table>
+          </div>
             )}
           </section>
 

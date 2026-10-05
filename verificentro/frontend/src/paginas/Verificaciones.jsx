@@ -124,8 +124,8 @@ export default function Verificaciones() {
           />
         </div>
       ) : (
-        <div className="tarjeta overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="tarjeta overflow-x-auto">
+          <table className="w-full min-w-3xl text-sm">
             <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
               <tr>
                 <th className="px-5 py-3">FOLIO</th>
