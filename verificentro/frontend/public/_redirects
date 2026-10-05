@@ -1,0 +1,4 @@
+# La aplicación de React maneja sus propias rutas. Sin esta línea, entrar
+# directo a /consulta o recargar la página da 404, porque Netlify busca un
+# archivo con ese nombre y no existe: todo vive en index.html.
+/*    /index.html   200

@@ -1,0 +1,16 @@
+# Configuración de Netlify. Con esto, conectar el repositorio es suficiente:
+# no hay que llenar nada a mano en el panel.
+
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Mismo propósito que public/_redirects, por si Netlify ignora ese archivo.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
