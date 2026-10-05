@@ -150,11 +150,49 @@ https://verificentro-api.onrender.com/salud
 
 Debe responder `{"estado":"ok","entorno":"produccion"}`.
 
-**3.6** Crea tu usuario administrador. En Render → pestaña **Shell**:
+**3.6** Crea tu usuario administrador **desde tu computadora**, no desde
+Render: el Shell de Render es de pago.
 
-```bash
-python -m jobs.crear_admin "Darly Juárez" darly@verificentro.mx TuContrasena123
+No es un rodeo. Como la base vive en Aiven, cualquier máquina que pueda
+conectarse a ella sirve, y de todos modos vas a necesitar este `.env` local
+para los jobs de recordatorios del paso 6.
+
+En `backend\.env`:
+
 ```
+DB_URL=mysql+pymysql://avnadmin:LA-CONTRASENA@EL-HOST:EL-PUERTO/defaultdb?charset=utf8mb4&ssl_ca=ca.pem
+JWT_SECRETO=cualquier-cosa-larga-aqui-no-importa
+ENTORNO=desarrollo
+```
+
+El `JWT_SECRETO` local da igual: este archivo solo lo usan los jobs, que no
+firman tokens. El que firma las sesiones de verdad es el que generó Render.
+
+```powershell
+cd backend
+.venv\Scripts\activate
+python -m jobs.crear_admin "Darly Juárez" darly@verificentro.mx TuContrasena123
+python -m jobs.diagnostico
+```
+
+El diagnóstico debe reportar la conexión a Aiven en verde y 1 empleado
+registrado.
+
+**Si prefieres no usar el `.env` local**, también se puede insertar a mano.
+Genera el hash de la contraseña y luego el INSERT:
+
+```powershell
+python -c "from app.seguridad import hashear_contrasena; print(hashear_contrasena('TuContrasena123'))"
+```
+
+```sql
+INSERT INTO empleados (nombre, correo, hash_contrasena, perfil, activo)
+VALUES ('Darly Juárez', 'darly@verificentro.mx', 'EL-HASH-QUE-SALIO',
+        'administrador', 1);
+```
+
+Nunca guardes la contraseña en texto plano en la tabla: el sistema solo
+compara hashes y no podría iniciar sesión.
 
 ---
 
@@ -249,6 +287,7 @@ El detalle completo está en `SUBIR_A_PRODUCCION.md`, paso 9.
 - [ ] Recargar `/consulta` **no** da 404 (eso lo arregla `_redirects`)
 - [ ] Desde la computadora del verificentro:
       `python -m jobs.diagnostico` sale en verde contra Aiven
+- [ ] El administrador se creó y puedes iniciar sesión desde Netlify
 - [ ] `python -m jobs.probar_correo tu.correo@gmail.com` llega
 
 ---
@@ -296,3 +335,7 @@ subió a Git.
 
 **`JWT_SECRETO` es demasiado corto** — en producción el servidor se niega a
 arrancar con el de ejemplo. Deja que Render lo genere.
+
+**No hay Shell en Render** — es de pago. Todo lo que se corre una sola vez
+—crear el administrador, cargar datos de prueba, aplicar una migración— se
+hace desde tu computadora contra la base de Aiven. La base es la misma.
