@@ -84,6 +84,13 @@ def revisar_configuracion():
 def revisar_base_de_datos():
     titulo("4. Base de datos")
     try:
+        from app.database import CertificadoNoEncontrado  # noqa: F401
+    except RuntimeError as exc:
+        # Lo levanta app.database al armar el motor: sin el ca.pem de Aiven
+        # no hay conexión posible y no tiene caso seguir.
+        falla(str(exc))
+        return
+    try:
         from sqlalchemy import text
 
         from app.database import motor
@@ -192,6 +199,19 @@ def revisar_correo():
                 "        SMTP_USUARIO, o Google reescribe el remitente."
             )
         ok("Configurado por SMTP.")
+
+    if proveedor == "mailjet":
+        if not (config.mailjet_api_key and config.mailjet_api_secret):
+            falla("Faltan MAILJET_API_KEY o MAILJET_API_SECRET.")
+            return
+        ok("Configurado por la API de Mailjet.")
+        if not config.mailjet_webhook_secreto:
+            aviso(
+                "Sin MAILJET_WEBHOOK_SECRETO no hay acuses de entrega.\n"
+                "        Mailjet puede descartar un correo DESPUES de aceptarlo\n"
+                "        —lo que su panel llama 'spam pre-blocked'— y sin el\n"
+                "        webhook eso se ve igual que un envío bueno."
+            )
 
     if proveedor == "apps_script":
         if not config.apps_script_url:

@@ -49,6 +49,12 @@ function cuando(iso) {
   return `${f.toLocaleDateString("es-MX", { day: "2-digit", month: "short" })} · ${hora}`;
 }
 
+/** Concuerda el verbo con la cantidad. «Se prepararon 1 avisos» se lee mal
+ *  y es lo primero que nota quien usa el sistema todos los días. */
+function cuantos(n, singular, plural) {
+  return n === 1 ? singular : plural;
+}
+
 export default function Recordatorios() {
   const { puede } = useSesion();
 
@@ -58,6 +64,11 @@ export default function Recordatorios() {
   const [historial, setHistorial] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  // El resultado de «Revisar a quién le toca» y «Enviar ahora». Faltaba
+  // declararlo: las dos funciones llamaban a setAviso y el botón tronaba con
+  // «setAviso is not defined» DESPUÉS de haber hecho el trabajo en el
+  // servidor, así que el aviso se veía como un fallo que no era.
+  const [aviso, setAviso] = useState(null);
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -96,15 +107,20 @@ export default function Recordatorios() {
 
   async function revisar() {
     setError(null);
+    setAviso(null);
     setTrabajando("revisar");
     try {
       const r = await api.generar(90);
+      const cancelados = r.cancelados
+        ? ` Se ${cuantos(r.cancelados, "canceló", "cancelaron")} ` +
+          `${r.cancelados} de clientes que ya verificaron.`
+        : "";
       setAviso(
         r.creados > 0
-          ? `Se prepararon ${r.creados} avisos nuevos.` +
-            (r.cancelados ? ` Se cancelaron ${r.cancelados} de clientes que ya verificaron.` : "")
-          : "Revisado. No hay avisos nuevos por preparar: nadie cumple fecha en los próximos 90 días." +
-            (r.cancelados ? ` Se cancelaron ${r.cancelados} de clientes que ya verificaron.` : "")
+          ? `Se ${cuantos(r.creados, "preparó", "prepararon")} ${r.creados} ` +
+            `${cuantos(r.creados, "aviso nuevo", "avisos nuevos")}.` + cancelados
+          : "Revisado. No hay avisos nuevos por preparar: nadie cumple fecha " +
+            "en los próximos 90 días." + cancelados
       );
       cargar();
     } catch (e) {
@@ -116,13 +132,17 @@ export default function Recordatorios() {
 
   async function enviarAhora() {
     setError(null);
+    setAviso(null);
     setTrabajando("enviar");
     try {
       const r = await api.enviar();
       setAviso(
         r.enviados > 0
-          ? `Se enviaron ${r.enviados} avisos.` +
-            (r.fallidos ? ` ${r.fallidos} no se pudieron entregar.` : "")
+          ? `Se ${cuantos(r.enviados, "envió", "enviaron")} ${r.enviados} ` +
+            `${cuantos(r.enviados, "aviso", "avisos")}.` +
+            (r.fallidos
+              ? ` ${r.fallidos} no se ${cuantos(r.fallidos, "pudo", "pudieron")} entregar.`
+              : "")
           : "No había nada por enviar en este momento."
       );
       cargar();
@@ -160,6 +180,7 @@ export default function Recordatorios() {
         )}
       </div>
 
+      {aviso && <Aviso tono="exito">{aviso}</Aviso>}
       <Aviso>{error}</Aviso>
 
       {config && !config.manda_de_verdad && <ModoPrueba config={config} />}

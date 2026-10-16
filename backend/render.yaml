@@ -34,6 +34,10 @@ services:
         value: "587"
       - key: DB_URL
         sync: false
+      # El certificado público de Aiven. O se sube backend/ca.pem al
+      # repositorio (ojo: muchos .gitignore traen *.pem), o se pega aquí.
+      - key: DB_CA_PEM
+        sync: false
       - key: JWT_SECRETO
         generateValue: true
       - key: SMTP_USUARIO
@@ -47,6 +51,13 @@ services:
       - key: URL_CONSULTA
         sync: false
       - key: ORIGENES_PERMITIDOS
+        sync: false
+      # Solo si PROVEEDOR_CORREO=mailjet. Ver CONECTAR_CORREO.md.
+      - key: MAILJET_API_KEY
+        sync: false
+      - key: MAILJET_API_SECRET
+        sync: false
+      - key: MAILJET_WEBHOOK_SECRETO
         sync: false
       # Solo si PROVEEDOR_CORREO=apps_script. Ver CONECTAR_CORREO.md.
       - key: APPS_SCRIPT_URL

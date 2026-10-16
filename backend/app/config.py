@@ -36,6 +36,11 @@ class Config(BaseSettings):
     # gratuitos de base de datos dan muy pocas (Aiven, unas 20 en total), y
     # entre el servidor web y los jobs se agotan rápido. Con 3 + 2 sobra para
     # un verificentro y deja margen.
+    # El certificado público de Aiven, pegado completo. Alternativa a tener
+    # el archivo backend/ca.pem en el repositorio, donde un `*.pem` en el
+    # .gitignore lo excluye sin avisar.
+    db_ca_pem: str = ""
+
     db_pool: int = 3
     db_pool_extra: int = 2
 
@@ -58,7 +63,9 @@ class Config(BaseSettings):
     # consola     -> imprime en pantalla, no manda nada
     # smtp        -> servidor de correo clásico (Gmail con contraseña de app)
     # apps_script -> una app web de Google Apps Script; ver CONECTAR_CORREO.md
-    proveedor_correo: Literal["consola", "smtp", "apps_script"] = "consola"
+    proveedor_correo: Literal[
+        "consola", "smtp", "apps_script", "mailjet"
+    ] = "consola"
 
     whatsapp_token: str = ""
     whatsapp_phone_id: str = ""
@@ -68,6 +75,13 @@ class Config(BaseSettings):
     whatsapp_idioma: str = "es_MX"
     # Secreto de la app, para comprobar la firma de los webhooks.
     whatsapp_app_secret: str = ""
+
+    # Mailjet por API, no por SMTP: la API sí dice si rechazó el mensaje.
+    # El secreto del webhook va en la propia dirección, porque Mailjet no
+    # firma los eventos.
+    mailjet_api_key: str = ""
+    mailjet_api_secret: str = ""
+    mailjet_webhook_secreto: str = ""
 
     # Apps Script. La URL es la de la implementación, la que termina en /exec.
     # El token lo inventas tú y tiene que ser el mismo en el script.

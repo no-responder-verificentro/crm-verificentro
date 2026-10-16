@@ -77,10 +77,27 @@ Guárdalo en `backend/ca.pem`. **Sí se sube a Git**: es un certificado público
 no un secreto.
 
 ```powershell
-git add backend/ca.pem
+git add -f backend/ca.pem
 git commit -m "Certificado de Aiven"
 git push
 ```
+
+**El `-f` no sobra.** Casi todos los `.gitignore` traen `*.pem` para evitar
+que se suban llaves privadas, y se lleva este archivo de corbata sin decir
+nada. Comprueba que sí quedó:
+
+```powershell
+git ls-files backend/ca.pem
+```
+
+Si no imprime nada, no se subió. En el servidor eso se ve como un error 500
+al iniciar sesión, que el navegador reporta —engañosamente— como problema de
+CORS.
+
+**La alternativa, si prefieres no pelearte con el `.gitignore`:** abre el
+`ca.pem` con el Bloc de notas, copia todo —incluidas las líneas
+`BEGIN CERTIFICATE` y `END CERTIFICATE`— y pégalo en Render como la variable
+`DB_CA_PEM`. El sistema lo escribe solo al arrancar.
 
 **2.5** Carga el esquema. Desde tu computadora:
 
@@ -330,8 +347,14 @@ hay que volver a desplegar Netlify después de cambiarla.
 **Recargar `/consulta` da 404** — falta `frontend/public/_redirects`.
 
 **El backend no arranca en Render** — ve a Logs. Si dice *Access denied*, la
-`DB_URL` está mal. Si menciona SSL, falta `&ssl_ca=ca.pem` o el archivo no se
-subió a Git.
+`DB_URL` está mal. Si menciona el certificado, falta `&ssl_ca=ca.pem` en la
+`DB_URL`, o el archivo no se subió —revisa con `git ls-files backend/ca.pem`—
+o se puede pegar su contenido en la variable `DB_CA_PEM`.
+
+**Entrar al sistema da 500, y el navegador dice que es CORS** — no es CORS.
+Cuando el servidor truena con un error no capturado, la respuesta sale sin la
+cabecera de CORS y el navegador culpa a lo único que ve. El error de verdad
+está en Logs. La causa más común aquí es justo el `ca.pem` que falta.
 
 **`JWT_SECRETO` es demasiado corto** — en producción el servidor se niega a
 arrancar con el de ejemplo. Deja que Render lo genere.
