@@ -2,9 +2,8 @@
 # no hay que llenar nada a mano en el panel.
 
 [build]
-  base    = "frontend"
   command = "npm run build"
-  publish = "frontend/dist"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
