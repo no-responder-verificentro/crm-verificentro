@@ -79,13 +79,13 @@ export default function Citas() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-guinda-oscuro">Citas</h1>
+          <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">Citas</h1>
           <p className="mt-1 text-sm text-neutral-500">
             Una línea, bloques de 20 minutos. Se aparta una cita por hora y los
             demás espacios quedan libres para quien llega sin avisar.
           </p>
         </div>
-        <label className="block">
+        <label className="block w-full sm:w-auto">
           <span className="etiqueta">DÍA</span>
           <input type="date" className="campo" value={fecha}
                  onChange={(e) => setFecha(e.target.value)} />
@@ -124,7 +124,7 @@ export default function Citas() {
               />
             ) : (
               <div className="overflow-x-auto">
-          <table className="w-full min-w-3xl text-sm">
+          <table className="tabla-responsiva w-full min-w-3xl text-sm">
                 <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
                   <tr>
                     <th className="px-6 py-3">HORA</th>
@@ -138,10 +138,10 @@ export default function Citas() {
                 <tbody>
                   {agenda.map((c) => (
                     <tr key={c.id} className="border-t border-borde">
-                      <td className="px-6 py-3 text-base font-bold whitespace-nowrap">
+                      <td className="celda-titulo px-6 py-3 text-base font-bold whitespace-nowrap">
                         {hora(c.hora_inicio)}
                       </td>
-                      <td className="px-6 py-3 font-bold">
+                      <td data-etiqueta="PLACA" className="px-6 py-3 font-bold">
                         {c.vehiculo_id ? (
                           <Link to={`/vehiculos/${c.vehiculo_id}`}
                                 className="hover:underline">
@@ -157,20 +157,20 @@ export default function Citas() {
                           </>
                         )}
                       </td>
-                      <td className="px-6 py-3">
+                      <td data-etiqueta="CONTACTO" className="px-6 py-3">
                         {c.nombre_contacto}
                         <span className="block text-xs text-neutral-500">
                           {telefonoLegible(c.telefono_contacto)}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-neutral-500">
+                      <td data-etiqueta="ORIGEN" className="px-6 py-3 text-neutral-500">
                         {ORIGENES[c.origen] || c.origen}
                       </td>
-                      <td className="px-6 py-3">
+                      <td data-etiqueta="ESTADO" className="px-6 py-3">
                         <Pastilla texto={ESTADOS[c.estado]?.[0] || c.estado}
                                   clase={ESTADOS[c.estado]?.[1] || ""} />
                       </td>
-                      <td className="px-6 py-3 text-right whitespace-nowrap">
+                      <td className="celda-acciones px-6 py-3 text-right whitespace-nowrap">
                         {puede("capturar") &&
                           ["agendada", "confirmada"].includes(c.estado) && (
                             <>
@@ -246,7 +246,7 @@ function HorariosLibres({ libres, puedeApartar, alElegir }) {
   }
 
   return (
-    <section className="tarjeta p-6">
+    <section className="tarjeta p-5 sm:p-6">
       <h2 className="text-lg font-bold text-guinda">Horarios libres</h2>
       <p className="mb-4 text-xs text-neutral-500">
         Estos son los espacios que se pueden apartar. Los intermedios existen,

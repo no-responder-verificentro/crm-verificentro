@@ -136,7 +136,7 @@ export default function Recordatorios() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-guinda-oscuro">Recordatorios</h1>
+          <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">Recordatorios</h1>
           <p className="mt-1 max-w-2xl text-sm text-neutral-500">
             Lo que está por salir y lo que ya salió. Se cancela solo si el
             cliente verifica antes.
@@ -144,12 +144,12 @@ export default function Recordatorios() {
         </div>
 
         {puede("editar_contacto") && (
-          <div className="flex shrink-0 gap-3">
-            <button onClick={revisar} className="boton-secundario"
+          <div className="flex w-full gap-3 sm:w-auto sm:shrink-0">
+            <button onClick={revisar} className="boton-secundario flex-1 sm:flex-none"
                     disabled={Boolean(trabajando)}>
               {trabajando === "revisar" ? "Revisando…" : "Revisar a quién le toca"}
             </button>
-            <button onClick={enviarAhora} className="boton-principal"
+            <button onClick={enviarAhora} className="boton-principal flex-1 sm:flex-none"
                     disabled={Boolean(trabajando)}>
               {trabajando === "enviar" ? "Enviando…" : "Enviar ahora"}
             </button>
@@ -207,29 +207,29 @@ export default function Recordatorios() {
         columnas={["SALE", "CLIENTE", "PLACA", "CANAL", "AVISO", "ESTADO", ""]}
         pintar={(r) => (
           <>
-            <td className="px-6 py-3 font-semibold whitespace-nowrap">
+            <td data-etiqueta="SALE" className="px-6 py-3 font-semibold whitespace-nowrap">
               {cuando(r.programado_para)}
             </td>
-            <td className="px-6 py-3">{r.cliente_nombre}</td>
-            <td className="px-6 py-3">
+            <td className="celda-titulo px-6 py-3">{r.cliente_nombre}</td>
+            <td data-etiqueta="PLACA" className="px-6 py-3">
               <Link to={`/vehiculos/${r.vehiculo_id}`}
                     className="font-bold hover:underline">{r.placa}</Link>
             </td>
-            <td className={`px-6 py-3 font-semibold ${
+            <td data-etiqueta="CANAL" className={`px-6 py-3 font-semibold ${
               r.canal === "whatsapp" ? "text-exito" : "text-info"}`}>
               {r.canal === "whatsapp" ? "WhatsApp" : "Correo"}
             </td>
-            <td className="px-6 py-3 text-neutral-500">
+            <td data-etiqueta="AVISO" className="px-6 py-3 text-neutral-500">
               {AVISOS[r.aviso_clave] || r.aviso_clave}
               {r.ventana && (
                 <span className="block text-[11px]">{r.ventana}</span>
               )}
             </td>
-            <td className="px-6 py-3">
+            <td data-etiqueta="ESTADO" className="px-6 py-3">
               <Pastilla texto={ESTADO[r.estado]?.[0] || r.estado}
                         clase={ESTADO[r.estado]?.[1] || ""} />
             </td>
-            <td className="px-6 py-3 text-right whitespace-nowrap">
+            <td className="celda-acciones px-6 py-3 text-right whitespace-nowrap">
               {puede("editar_contacto") && (
                 r.estado === "pausado" ? (
                   <button onClick={() => accion(api.reanudar, r.id)}
@@ -268,22 +268,22 @@ export default function Recordatorios() {
         columnas={["FECHA", "CLIENTE", "PLACA", "CANAL", "AVISO", "ENTREGA"]}
         pintar={(r) => (
           <>
-            <td className="px-6 py-3 font-semibold whitespace-nowrap">
+            <td data-etiqueta="FECHA" className="px-6 py-3 font-semibold whitespace-nowrap">
               {cuando(r.enviado_en)}
             </td>
-            <td className="px-6 py-3">{r.cliente_nombre}</td>
-            <td className="px-6 py-3">
+            <td className="celda-titulo px-6 py-3">{r.cliente_nombre}</td>
+            <td data-etiqueta="PLACA" className="px-6 py-3">
               <Link to={`/vehiculos/${r.vehiculo_id}`}
                     className="font-bold hover:underline">{r.placa}</Link>
             </td>
-            <td className={`px-6 py-3 font-semibold ${
+            <td data-etiqueta="CANAL" className={`px-6 py-3 font-semibold ${
               r.canal === "whatsapp" ? "text-exito" : "text-info"}`}>
               {r.canal === "whatsapp" ? "WhatsApp" : "Correo"}
             </td>
-            <td className="px-6 py-3 text-neutral-500">
+            <td data-etiqueta="AVISO" className="px-6 py-3 text-neutral-500">
               {AVISOS[r.aviso_clave] || r.aviso_clave}
             </td>
-            <td className="px-6 py-3">
+            <td data-etiqueta="ENTREGA" className="px-6 py-3">
               <Pastilla texto={ENTREGA[r.estado_entrega]?.[0] || r.estado_entrega}
                         clase={ENTREGA[r.estado_entrega]?.[1] || ""} />
               {r.motivo_error && (
@@ -334,7 +334,7 @@ function Panel({ titulo, detalle, filas, columnas, pintar, vacio }) {
         <Vacio titulo={vacio.titulo} detalle={vacio.detalle} />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-3xl text-sm">
+          <table className="tabla-responsiva w-full min-w-3xl text-sm">
           <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
             <tr>
               {columnas.map((c, i) => (

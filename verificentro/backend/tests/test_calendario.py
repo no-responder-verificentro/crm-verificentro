@@ -10,8 +10,6 @@ from datetime import date
 
 import pytest
 
-
-
 from app.dominio.calendario import (
     DigitoInvalido,
     Estado,

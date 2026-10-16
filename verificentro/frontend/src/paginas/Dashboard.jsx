@@ -54,7 +54,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-bold text-guinda-oscuro">Panel de control</h1>
+        <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">Panel de control</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Clave 00002025 · Av. Ruíz Cortines No. 256, Col. Centro
         </p>
@@ -124,16 +124,16 @@ export default function Dashboard() {
           />
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-3xl text-sm">
+          <table className="tabla-responsiva w-full min-w-3xl text-sm">
             <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
               <tr>
-                <th className="px-6 py-3">CLIENTE</th>
-                <th className="px-6 py-3">PLACA</th>
-                <th className="px-6 py-3">DÍGITO</th>
-                <th className="px-6 py-3">PERIODO</th>
-                <th className="px-6 py-3">RESTANTE</th>
-                <th className="px-6 py-3">ESTADO</th>
-                <th className="px-6 py-3">ÚLTIMO AVISO</th>
+                <th className="px-4 py-3">CLIENTE</th>
+                <th className="px-4 py-3">PLACA</th>
+                <th className="px-4 py-3">DÍGITO</th>
+                <th className="px-4 py-3">PERIODO</th>
+                <th className="px-4 py-3">RESTANTE</th>
+                <th className="px-4 py-3">ESTADO</th>
+                <th className="px-4 py-3">ÚLTIMO AVISO</th>
               </tr>
             </thead>
             <tbody>
@@ -141,26 +141,30 @@ export default function Dashboard() {
                 const estado = describirEstado(f.estado);
                 return (
                   <tr key={f.vehiculo_id} className="border-t border-borde">
-                    <td className="px-6 py-3 font-semibold">{f.cliente}</td>
-                    <td className="px-6 py-3">
+                    <td className="celda-titulo px-4 py-3 font-semibold">{f.cliente}</td>
+                    <td data-etiqueta="PLACA" className="px-4 py-3 whitespace-nowrap">
                       <Link to={`/vehiculos/${f.vehiculo_id}`}
                             className="font-bold hover:underline">
                         {f.placa}
                       </Link>
                     </td>
-                    <td className="px-6 py-3 font-bold text-guinda">
+                    <td data-etiqueta="DÍGITO"
+                        className="px-4 py-3 font-bold text-guinda">
                       {f.ultimo_digito}
                     </td>
-                    <td className="px-6 py-3 text-neutral-500">
+                    <td data-etiqueta="PERIODO"
+                        className="px-4 py-3 whitespace-nowrap text-neutral-500">
                       {f.ventana || "—"}
                     </td>
-                    <td className="px-6 py-3 font-semibold whitespace-nowrap">
+                    <td data-etiqueta="RESTANTE"
+                        className="px-4 py-3 font-semibold whitespace-nowrap">
                       {restante(f)}
                     </td>
-                    <td className="px-6 py-3">
+                    <td data-etiqueta="ESTADO" className="px-4 py-3">
                       <Pastilla texto={estado.texto} clase={estado.clase} />
                     </td>
-                    <td className="px-6 py-3 text-xs text-neutral-500">
+                    <td data-etiqueta="ÚLTIMO AVISO"
+                        className="px-4 py-3 text-xs text-neutral-500">
                       {f.se_le_puede_escribir ? (
                         f.ultimo_aviso || "sin enviar"
                       ) : (
@@ -194,23 +198,32 @@ function restante(fila) {
 function Grafica({ datos }) {
   const maximo = Math.max(...datos.map((d) => d.verificaciones), 1);
   return (
-    <section className="tarjeta p-6">
+    <section className="tarjeta p-5 sm:p-6">
       <h2 className="text-lg font-bold text-guinda">Verificaciones por mes</h2>
       <p className="mb-5 text-xs text-neutral-500">Solo las aprobadas.</p>
-      <div className="flex h-48 items-end gap-3">
+      {/* En celular las barras se angostan y, si aun así no caben, el bloque
+          se desplaza de lado: es una gráfica, no una tabla. */}
+      {/* Las barras van dentro de un carril propio, no sueltas en la columna.
+          Un alto en porcentaje necesita que el padre tenga alto definido; con
+          `items-end` cada columna medía lo que medían sus dos letreros, y las
+          barras salían de cero: la gráfica llevaba tiempo saliendo vacía. */}
+      <div className="flex h-40 items-stretch gap-1.5 overflow-x-auto sm:h-48 sm:gap-3">
         {datos.map((d, i) => (
-          <div key={d.mes} className="flex flex-1 flex-col items-center gap-2">
+          <div key={d.mes}
+               className="flex min-w-6 flex-1 flex-col items-center gap-2">
             <span className="text-[11px] font-bold text-neutral-500">
               {d.verificaciones}
             </span>
-            <div
-              className={`w-full rounded-t-md ${
-                i === datos.length - 1 ? "bg-dorado" : "bg-guinda"
-              }`}
-              style={{
-                height: `${Math.max((d.verificaciones / maximo) * 100, 2)}%`,
-              }}
-            />
+            <div className="flex w-full flex-1 items-end">
+              <div
+                className={`w-full rounded-t-md ${
+                  i === datos.length - 1 ? "bg-dorado" : "bg-guinda"
+                }`}
+                style={{
+                  height: `${Math.max((d.verificaciones / maximo) * 100, 2)}%`,
+                }}
+              />
+            </div>
             <span className="text-[11px] font-semibold">{d.mes}</span>
           </div>
         ))}

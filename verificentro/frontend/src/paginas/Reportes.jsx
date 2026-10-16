@@ -41,14 +41,14 @@ export default function Reportes() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-guinda-oscuro">Reportes</h1>
+          <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">Reportes</h1>
           <p className="mt-1 text-sm text-neutral-500">
             Los números para decidir. Solo se cuentan los periodos que ya
             cerraron.
           </p>
         </div>
-        <div className="flex items-end gap-3">
-          <label className="block">
+        <div className="flex w-full items-end gap-3 sm:w-auto">
+          <label className="block flex-1 sm:flex-none">
             <span className="etiqueta">AÑO</span>
             <select className="campo" value={anio}
                     onChange={(e) => setAnio(Number(e.target.value))}>
@@ -91,7 +91,7 @@ function Efectividad({ datos }) {
       datos.sin_aviso_total < MUESTRA_MINIMA);
 
   return (
-    <section className="tarjeta space-y-4 bg-guinda-oscuro p-7">
+    <section className="tarjeta space-y-4 bg-guinda-oscuro p-5 sm:p-7">
       <div>
         <h2 className="text-2xl font-bold text-white">
           ¿Sirve mandar recordatorios?
@@ -178,7 +178,7 @@ function Cumplimiento({ filas }) {
         </p>
       </header>
       <div className="overflow-x-auto">
-      <table className="w-full min-w-md text-sm">
+      <table className="tabla-responsiva w-full min-w-md text-sm">
         <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
           <tr>
             <th className="px-6 py-3">DÍGITOS</th>
@@ -190,10 +190,10 @@ function Cumplimiento({ filas }) {
         <tbody>
           {filas.map((f) => (
             <tr key={f.digitos} className="border-t border-borde">
-              <td className="px-6 py-3 font-bold text-guinda">{f.digitos}</td>
-              <td className="px-6 py-3 text-neutral-500">{f.padron}</td>
-              <td className="px-6 py-3 font-semibold">{f.verificaron}</td>
-              <td className="px-6 py-3">
+              <td className="celda-titulo px-6 py-3 font-bold text-guinda">{f.digitos}</td>
+              <td data-etiqueta="PADRÓN" className="px-6 py-3 text-neutral-500">{f.padron}</td>
+              <td data-etiqueta="VERIFICARON" className="px-6 py-3 font-semibold">{f.verificaron}</td>
+              <td data-etiqueta="%" className="px-6 py-3">
                 <div className="flex items-center gap-3">
                   <div className="h-2 w-24 overflow-hidden rounded-full bg-neutral-200">
                     <div
@@ -226,7 +226,7 @@ function Canales({ filas }) {
         </p>
       </header>
       <div className="overflow-x-auto">
-      <table className="w-full min-w-md text-sm">
+      <table className="tabla-responsiva w-full min-w-md text-sm">
         <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
           <tr>
             <th className="px-6 py-3">CANAL</th>
@@ -239,16 +239,16 @@ function Canales({ filas }) {
         <tbody>
           {filas.map((f) => (
             <tr key={f.canal} className="border-t border-borde">
-              <td className={`px-6 py-3 font-semibold ${
+              <td className={`celda-titulo px-6 py-3 font-semibold ${
                 f.canal === "whatsapp" ? "text-exito" : "text-info"}`}>
                 {f.canal === "whatsapp" ? "WhatsApp" : "Correo"}
               </td>
-              <td className="px-6 py-3">{f.enviados}</td>
-              <td className="px-6 py-3">{f.entregados}</td>
-              <td className={`px-6 py-3 ${f.fallidos ? "font-bold text-error" : ""}`}>
+              <td data-etiqueta="ENVIADOS" className="px-6 py-3">{f.enviados}</td>
+              <td data-etiqueta="ENTREGADOS" className="px-6 py-3">{f.entregados}</td>
+              <td data-etiqueta="FALLIDOS" className={`px-6 py-3 ${f.fallidos ? "font-bold text-error" : ""}`}>
                 {f.fallidos}
               </td>
-              <td className="px-6 py-3 font-bold">{f.tasa_entrega}%</td>
+              <td data-etiqueta="TASA" className="px-6 py-3 font-bold">{f.tasa_entrega}%</td>
             </tr>
           ))}
         </tbody>
@@ -261,20 +261,27 @@ function Canales({ filas }) {
 function PorMes({ datos }) {
   const maximo = Math.max(...datos.map((d) => d.verificaciones), 1);
   return (
-    <section className="tarjeta p-6">
+    <section className="tarjeta p-5 sm:p-6">
       <h2 className="text-lg font-bold text-guinda">Verificaciones por mes</h2>
       <p className="mb-5 text-xs text-neutral-500">Solo las aprobadas.</p>
-      <div className="flex h-52 items-end gap-2">
+      {/* Las barras van dentro de un carril propio, no sueltas en la columna.
+          Un alto en porcentaje necesita que el padre tenga alto definido; con
+          `items-end` cada columna medía lo que medían sus dos letreros, y las
+          barras salían de cero: la gráfica llevaba tiempo saliendo vacía. */}
+      <div className="flex h-44 items-stretch gap-1.5 overflow-x-auto sm:h-52 sm:gap-2">
         {datos.map((d, i) => (
-          <div key={d.mes} className="flex flex-1 flex-col items-center gap-2">
+          <div key={d.mes}
+               className="flex min-w-6 flex-1 flex-col items-center gap-2">
             <span className="text-[11px] font-bold text-neutral-500">
               {d.verificaciones}
             </span>
-            <div
-              className={`w-full rounded-t-md ${
-                i === datos.length - 1 ? "bg-dorado" : "bg-guinda"}`}
-              style={{ height: `${Math.max((d.verificaciones / maximo) * 100, 2)}%` }}
-            />
+            <div className="flex w-full flex-1 items-end">
+              <div
+                className={`w-full rounded-t-md ${
+                  i === datos.length - 1 ? "bg-dorado" : "bg-guinda"}`}
+                style={{ height: `${Math.max((d.verificaciones / maximo) * 100, 2)}%` }}
+              />
+            </div>
             <span className="text-[10px] font-semibold">{d.mes}</span>
           </div>
         ))}

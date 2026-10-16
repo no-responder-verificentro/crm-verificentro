@@ -49,16 +49,17 @@ export default function Clientes() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-guinda-oscuro">Clientes</h1>
+          <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">Clientes</h1>
           <p className="mt-1 text-sm text-neutral-500">
             Un cliente puede tener varios vehículos. La búsqueda acepta nombre,
             teléfono, correo, placa o número de serie.
           </p>
         </div>
         {puede("capturar") && (
-          <Link to="/clientes/nuevo" className="boton-principal shrink-0">
+          <Link to="/clientes/nuevo"
+                className="boton-principal w-full justify-center sm:w-auto sm:shrink-0">
             Nuevo cliente
           </Link>
         )}
@@ -100,7 +101,7 @@ export default function Clientes() {
 function TarjetaCliente({ cliente }) {
   return (
     <article className="tarjeta overflow-hidden">
-      <header className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6">
         <div>
           <h2 className="text-lg font-bold text-guinda-oscuro">{cliente.nombre}</h2>
           <p className="text-xs text-neutral-500">
@@ -110,7 +111,7 @@ function TarjetaCliente({ cliente }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Pastilla
             texto={cliente.consent_whatsapp ? "WhatsApp autorizado" : "Sin WhatsApp"}
             clase={
@@ -138,7 +139,7 @@ function TarjetaCliente({ cliente }) {
       </header>
 
       {cliente.vehiculos.length === 0 ? (
-        <p className="border-t border-borde px-6 py-4 text-sm text-neutral-400">
+        <p className="border-t border-borde px-5 py-4 text-sm text-neutral-400 sm:px-6">
           Sin vehículos registrados.
         </p>
       ) : (
@@ -159,7 +160,8 @@ function FilaVehiculo({ vehiculo }) {
     .join(" ");
 
   return (
-    <li className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-borde bg-neutral-50/60 px-6 py-3.5 text-sm">
+    <li className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-borde
+                   bg-neutral-50/60 px-5 py-3.5 text-sm sm:px-6">
       <span className="w-28 font-bold">{vehiculo.placa}</span>
       <span className="w-52 text-neutral-500">{descripcion || "—"}</span>
 

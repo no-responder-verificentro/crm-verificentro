@@ -35,7 +35,7 @@ export default function Login() {
           <p className="mt-1 text-sm text-neutral-500">Panel administrativo</p>
         </div>
 
-        <form onSubmit={enviar} className="tarjeta space-y-4 p-7">
+        <form onSubmit={enviar} className="tarjeta space-y-4 p-6 sm:p-7">
           <div>
             <label className="etiqueta" htmlFor="correo">
               CORREO

@@ -5,7 +5,7 @@ import Vacio from "../componentes/Vacio";
 export default function EnConstruccion({ titulo, detalle }) {
   return (
     <div className="space-y-5">
-      <h1 className="text-3xl font-bold text-guinda-oscuro">{titulo}</h1>
+      <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">{titulo}</h1>
       <div className="tarjeta">
         <Vacio titulo="Esta sección todavía no se programa" detalle={detalle} />
       </div>

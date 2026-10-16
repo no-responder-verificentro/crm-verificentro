@@ -14,3 +14,20 @@ frontend/               interfaz en React
 
 Si es tu primera vez, empieza por `COMO_EJECUTAR.md`.
 Para ponerlo en línea, `DESPLIEGUE.md`.
+
+## En celular
+
+La interfaz se adapta sola; no hay una versión aparte que mantener.
+
+- **Menos de 1024px** — el menú lateral se guarda y se abre con el botón de las
+  tres rayas de la barra superior. Las tablas se parten en tarjetas: cada
+  renglón pasa a ser un bloque con el nombre arriba y una etiqueta por dato, en
+  lugar de obligar a arrastrar la pantalla de lado.
+- **1024px o más** — el menú vuelve a estar fijo a la izquierda y las tablas
+  vuelven a ser tablas.
+
+Lo que controla ese comportamiento está en dos lugares:
+`frontend/src/componentes/Layout.jsx` para el menú, y el bloque final de
+`frontend/src/index.css` para las tablas. Ahí está explicado cómo marcar una
+tabla nueva: la clase `tabla-responsiva`, un `data-etiqueta` por celda y
+`celda-titulo` en la que hace de encabezado de la tarjeta.

@@ -61,7 +61,7 @@ export default function FichaVehiculo() {
         <Link to="/clientes" className="text-xs font-semibold text-info hover:underline">
           ← Volver a clientes
         </Link>
-        <h1 className="mt-2 text-3xl font-bold text-guinda-oscuro">
+        <h1 className="mt-2 text-2xl font-bold text-guinda-oscuro sm:text-3xl">
           {cliente?.nombre}
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
@@ -98,7 +98,7 @@ export default function FichaVehiculo() {
           />
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-3xl text-sm">
+          <table className="tabla-responsiva w-full min-w-3xl text-sm">
             <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
               <tr>
                 <th className="px-6 py-3">FECHA</th>
@@ -110,10 +110,10 @@ export default function FichaVehiculo() {
             <tbody>
               {vehiculo.verificaciones.map((v) => (
                 <tr key={v.id} className="border-t border-borde">
-                  <td className="px-6 py-3 font-semibold">
+                  <td className="celda-titulo px-6 py-3 font-semibold">
                     {fechaLegible(v.fecha)}
                   </td>
-                  <td className="px-6 py-3">
+                  <td data-etiqueta="RESULTADO" className="px-6 py-3">
                     <Pastilla
                       texto={v.resultado === "aprobado" ? "Aprobado" : "Rechazado"}
                       clase={
@@ -123,8 +123,8 @@ export default function FichaVehiculo() {
                       }
                     />
                   </td>
-                  <td className="px-6 py-3">{v.holograma || "—"}</td>
-                  <td className="px-6 py-3 text-neutral-500">
+                  <td data-etiqueta="HOLOGRAMA" className="px-6 py-3">{v.holograma || "—"}</td>
+                  <td data-etiqueta="FOLIO" className="px-6 py-3 text-neutral-500">
                     {v.folio_certificado || "—"}
                   </td>
                 </tr>
@@ -186,14 +186,15 @@ export default function FichaVehiculo() {
 
 function EstadoDelPeriodo({ vehiculo, estado, puedeCapturar, alVerificar, alCambiarPlaca }) {
   return (
-    <section className="tarjeta flex flex-wrap items-center justify-between gap-4 bg-guinda-oscuro p-6">
+    <section className="tarjeta flex flex-wrap items-center justify-between gap-4
+                        bg-guinda-oscuro p-5 sm:p-6">
       <div>
         <p className="text-[11px] font-bold tracking-wide text-dorado">
           {vehiculo.ventana
             ? `PERIODO ${vehiculo.ventana.etiqueta.toUpperCase()}`
             : "SIN CALENDARIO"}
         </p>
-        <p className="mt-1 text-2xl font-bold text-white">
+        <p className="mt-1 text-xl font-bold text-white sm:text-2xl">
           {vehiculo.estado
             ? `${estado.texto} · ${tiempoRestante(vehiculo)}`
             : "Fuera del programa estatal"}
@@ -208,7 +209,7 @@ function EstadoDelPeriodo({ vehiculo, estado, puedeCapturar, alVerificar, alCamb
       </div>
 
       {puedeCapturar && (
-        <div className="flex gap-3">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <button onClick={alVerificar}
                   className="rounded-lg bg-dorado px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
             Registrar verificación
@@ -236,7 +237,7 @@ function DatosDelVehiculo({ vehiculo }) {
     ["Combustible", vehiculo.combustible],
   ];
   return (
-    <section className="tarjeta p-6">
+    <section className="tarjeta p-5 sm:p-6">
       <h2 className="mb-4 text-lg font-bold text-guinda">Datos del vehículo</h2>
       <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-3">
         {campos.map(([etiqueta, valor]) => (

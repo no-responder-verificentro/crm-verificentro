@@ -27,6 +27,10 @@ const MATRIZ = [
   ["Registrar y dar de baja empleados",         1, 0, 0],
 ];
 
+/** Encabezados de las tres columnas de MATRIZ, en el mismo orden. En celular
+ *  la tabla se parte en tarjetas y cada celda necesita su propia etiqueta. */
+const PERFILES_COLUMNA = ["ADMINISTRADOR", "TÉCNICO", "ATENCIÓN"];
+
 function fecha(iso) {
   if (!iso) return "nunca";
   const f = new Date(iso);
@@ -78,7 +82,7 @@ export default function Empleados() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-guinda-oscuro">
+          <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">
             Empleados y permisos
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
@@ -86,7 +90,8 @@ export default function Empleados() {
             firmado con el nombre de quien lo hizo.
           </p>
         </div>
-        <button onClick={() => setAlta(true)} className="boton-principal shrink-0">
+        <button onClick={() => setAlta(true)}
+                className="boton-principal w-full sm:w-auto sm:shrink-0">
           Registrar empleado
         </button>
       </div>
@@ -115,7 +120,7 @@ export default function Empleados() {
           <Cargando />
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-3xl text-sm">
+          <table className="tabla-responsiva w-full min-w-3xl text-sm">
             <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
               <tr>
                 <th className="px-6 py-3">NOMBRE</th>
@@ -131,7 +136,7 @@ export default function Empleados() {
                 const soyYo = e.id === yo?.id;
                 return (
                   <tr key={e.id} className="border-t border-borde">
-                    <td className="px-6 py-3 font-semibold">
+                    <td className="celda-titulo px-6 py-3 font-semibold">
                       {e.nombre}
                       {soyYo && (
                         <span className="ml-2 text-[11px] font-bold text-neutral-400">
@@ -139,8 +144,8 @@ export default function Empleados() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-3 text-neutral-500">{e.correo}</td>
-                    <td className="px-6 py-3">
+                    <td data-etiqueta="CUENTA" className="px-6 py-3 text-neutral-500">{e.correo}</td>
+                    <td data-etiqueta="PERFIL" className="px-6 py-3">
                       <SelectorPerfil
                         empleado={e}
                         bloqueado={soyYo}
@@ -155,7 +160,7 @@ export default function Empleados() {
                         }}
                       />
                     </td>
-                    <td className="px-6 py-3">
+                    <td data-etiqueta="ESTADO" className="px-6 py-3">
                       <Pastilla
                         texto={e.activo ? "Activo" : "Dado de baja"}
                         clase={e.activo
@@ -163,10 +168,10 @@ export default function Empleados() {
                           : "bg-error/15 text-error"}
                       />
                     </td>
-                    <td className="px-6 py-3 text-neutral-500">
+                    <td data-etiqueta="ÚLTIMO ACCESO" className="px-6 py-3 text-neutral-500">
                       {fecha(e.ultimo_acceso)}
                     </td>
-                    <td className="px-6 py-3 text-right whitespace-nowrap">
+                    <td className="celda-acciones px-6 py-3 text-right whitespace-nowrap">
                       {soyYo ? (
                         <span className="text-xs text-neutral-400"
                               title="Nadie puede darse de baja a sí mismo">
@@ -259,7 +264,7 @@ function Matriz() {
         </p>
       </header>
       <div className="overflow-x-auto">
-      <table className="w-full min-w-3xl text-sm">
+      <table className="tabla-responsiva w-full min-w-3xl text-sm">
         <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
           <tr>
             <th className="px-6 py-3">PERMISO</th>
@@ -271,9 +276,10 @@ function Matriz() {
         <tbody>
           {MATRIZ.map(([permiso, ...valores]) => (
             <tr key={permiso} className="border-t border-borde">
-              <td className="px-6 py-3">{permiso}</td>
+              <td className="celda-titulo px-6 py-3">{permiso}</td>
               {valores.map((v, i) => (
-                <td key={i} className="px-6 py-3 text-center">
+                <td key={i} data-etiqueta={PERFILES_COLUMNA[i]}
+                    className="px-6 py-3 text-center">
                   {v === 2 ? (
                     <Pastilla texto="Solo lectura"
                               clase="bg-neutral-400/20 text-neutral-600" />

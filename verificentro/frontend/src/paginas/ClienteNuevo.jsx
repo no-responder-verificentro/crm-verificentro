@@ -104,7 +104,7 @@ export default function ClienteNuevo() {
   return (
     <div className="max-w-3xl space-y-5">
       <div>
-        <h1 className="text-3xl font-bold text-guinda-oscuro">
+        <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">
           Alta de cliente y vehículo
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
@@ -113,7 +113,7 @@ export default function ClienteNuevo() {
       </div>
 
       <form onSubmit={enviar} className="space-y-5">
-        <section className="tarjeta space-y-4 p-6">
+        <section className="tarjeta space-y-4 p-5 sm:p-6">
           <h2 className="text-sm font-bold text-guinda">DATOS DEL CLIENTE</h2>
 
           <Campo etiqueta="Nombre completo" requerido>
@@ -133,7 +133,7 @@ export default function ClienteNuevo() {
           </div>
         </section>
 
-        <section className="tarjeta space-y-4 p-6">
+        <section className="tarjeta space-y-4 p-5 sm:p-6">
           <label className="flex items-center gap-2.5">
             <input type="checkbox" checked={f.conVehiculo}
                    onChange={cambiar("conVehiculo")}
@@ -251,7 +251,7 @@ export default function ClienteNuevo() {
 
         <Aviso>{error}</Aviso>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <button type="submit" className="boton-principal" disabled={enviando}>
             {enviando ? "Guardando…" : "Guardar cliente"}
           </button>

@@ -65,9 +65,9 @@ export default function Chat() {
     return (
       <button
         onClick={() => setAbierto(true)}
-        className="fixed right-5 bottom-5 z-40 rounded-full bg-guinda px-6 py-4
+        className="fixed right-3 bottom-3 z-40 rounded-full bg-guinda px-5 py-3.5
                    text-sm font-bold text-white shadow-lg transition
-                   hover:bg-guinda-oscuro"
+                   hover:bg-guinda-oscuro sm:right-5 sm:bottom-5 sm:px-6 sm:py-4"
       >
         ¿Tienes dudas? Pregúntame
       </button>
@@ -76,9 +76,11 @@ export default function Chat() {
 
   return (
     <div
-      className="fixed right-5 bottom-5 z-40 flex h-[min(34rem,80vh)] w-[min(24rem,92vw)]
+      className="fixed right-3 bottom-3 left-3 z-40 flex h-[min(34rem,75vh)]
                  flex-col overflow-hidden rounded-2xl border border-borde
-                 bg-white shadow-2xl"
+                 bg-white shadow-2xl
+                 sm:right-5 sm:bottom-5 sm:left-auto sm:h-[min(34rem,80vh)]
+                 sm:w-96"
     >
       <header className="flex items-center justify-between bg-guinda-oscuro px-5 py-4">
         <div>

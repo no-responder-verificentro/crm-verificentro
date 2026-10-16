@@ -16,11 +16,11 @@ export default function Modal({ titulo, descripcion, onCerrar, children }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto
-                 bg-black/40 p-6"
+                 bg-black/40 p-3 sm:p-6"
       onClick={onCerrar}
     >
       <div
-        className="tarjeta my-8 w-full max-w-xl p-6"
+        className="tarjeta my-4 w-full max-w-xl p-5 sm:my-8 sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-start justify-between gap-4">

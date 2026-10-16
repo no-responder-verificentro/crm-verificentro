@@ -62,7 +62,7 @@ export default function Verificaciones() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-bold text-guinda-oscuro">Verificaciones</h1>
+        <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">Verificaciones</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Bitácora de todo lo que ha pasado por el centro. Cada registro aprobado
           deja al vehículo al corriente y detiene sus recordatorios.
@@ -84,7 +84,7 @@ export default function Verificaciones() {
         </div>
       )}
 
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
         <label className="block">
           <span className="etiqueta">DESDE</span>
           <input type="date" className="campo" value={filtros.desde}
@@ -104,7 +104,7 @@ export default function Verificaciones() {
             <option value="rechazado">Rechazadas</option>
           </select>
         </label>
-        <label className="block min-w-64 flex-1">
+        <label className="col-span-2 block sm:min-w-64 sm:flex-1">
           <span className="etiqueta">BUSCAR</span>
           <input className="campo" value={filtros.buscar}
                  onChange={cambiar("buscar")}
@@ -125,7 +125,7 @@ export default function Verificaciones() {
         </div>
       ) : (
         <div className="tarjeta overflow-x-auto">
-          <table className="w-full min-w-3xl text-sm">
+          <table className="tabla-responsiva w-full min-w-3xl text-sm">
             <thead className="bg-neutral-50 text-left text-[11px] font-bold text-neutral-500">
               <tr>
                 <th className="px-5 py-3">FOLIO</th>
@@ -140,10 +140,10 @@ export default function Verificaciones() {
             <tbody>
               {lista.map((v) => (
                 <tr key={v.id} className="border-t border-borde">
-                  <td className="px-5 py-3 font-semibold text-info">
+                  <td data-etiqueta="FOLIO" className="px-5 py-3 font-semibold text-info">
                     {v.folio_certificado || "—"}
                   </td>
-                  <td className="px-5 py-3 whitespace-nowrap">
+                  <td data-etiqueta="FECHA" className="px-5 py-3 whitespace-nowrap">
                     {fechaLegible(v.fecha)}
                     {!v.dentro_de_su_periodo && (
                       <span
@@ -154,17 +154,17 @@ export default function Verificaciones() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-3 font-bold">
+                  <td className="celda-titulo px-5 py-3 font-bold">
                     <Link to={`/vehiculos/${v.vehiculo_id}`}
                           className="hover:underline">
                       {v.placa}
                     </Link>
                   </td>
-                  <td className="px-5 py-3">{v.cliente_nombre}</td>
-                  <td className="px-5 py-3 text-neutral-500">
+                  <td data-etiqueta="CLIENTE" className="px-5 py-3">{v.cliente_nombre}</td>
+                  <td data-etiqueta="VEHÍCULO" className="px-5 py-3 text-neutral-500">
                     {v.vehiculo_descripcion || "—"}
                   </td>
-                  <td className="px-5 py-3">
+                  <td data-etiqueta="RESULTADO" className="px-5 py-3">
                     <Pastilla
                       texto={v.resultado === "aprobado" ? "Aprobado" : "Rechazado"}
                       clase={
@@ -174,7 +174,7 @@ export default function Verificaciones() {
                       }
                     />
                   </td>
-                  <td className="px-5 py-3 text-neutral-500">
+                  <td data-etiqueta="TÉCNICO" className="px-5 py-3 text-neutral-500">
                     {v.tecnico_nombre || "—"}
                   </td>
                 </tr>

@@ -83,3 +83,110 @@ body {
            text-[11px] font-bold whitespace-nowrap;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Tablas en celular.
+
+   Una tabla de siete columnas no cabe en 360px. Se puede desplazar de lado,
+   y así estaba, pero leer un renglón obliga a arrastrar ida y vuelta sin ver
+   nunca el encabezado. Aquí cada renglón se convierte en una tarjeta y cada
+   celda carga su propia etiqueta.
+
+   Cómo se usa, en tres marcas sobre el HTML que ya existe:
+
+     - `tabla-responsiva` en el <table>
+     - `data-etiqueta="PLACA"` en cada <td>, con el mismo texto del <th>
+     - `celda-titulo` en el <td> que sirve de título de la tarjeta; sube al
+       primer renglón aunque en la tabla sea la tercera columna, y no repite
+       su etiqueta. `celda-acciones` para la de los botones.
+
+   De `lg` (1024px) hacia arriba no se toca nada: vuelve a ser una tabla.
+   El corte es ahí y no en 768px porque en tableta vertical la tabla cabe
+   a fuerzas: las columnas se estrujan tanto que una placa se parte en tres
+   renglones. Es el mismo ancho al que aparece el menú lateral.
+
+   Va fuera de @layer a propósito. En la cascada, lo que no está en ninguna
+   capa le gana a lo que sí, y Tailwind 4 mete sus utilidades en @layer. Así
+   esto pisa el `min-w-3xl` y los `px-6 py-3` de los `<td>` sin un solo
+   !important.
+   --------------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+  .tabla-responsiva {
+    min-width: 0;
+  }
+
+  .tabla-responsiva thead {
+    display: none;
+  }
+
+  .tabla-responsiva tbody {
+    display: block;
+  }
+
+  /* Flex en columna y no block: así `order` funciona y la celda marcada como
+     título puede subir al principio de la tarjeta. */
+  .tabla-responsiva tr {
+    display: flex;
+    flex-direction: column;
+    padding: 0.875rem 1.25rem;
+  }
+
+  .tabla-responsiva td {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.1875rem 0;
+    text-align: right;
+  }
+
+  /* Cuando una celda trae un renglón secundario —el teléfono debajo del
+     nombre, el motivo del error debajo del acuse— ese renglón se baja en vez
+     de pelear el ancho con el dato principal. En la tabla eso lo hacía el
+     `block` de la utilidad; aquí hay que repetirlo porque el <td> pasó a ser
+     flex y sus hijos dejaron de ser bloques. */
+  .tabla-responsiva td > .block {
+    width: 100%;
+    text-align: right;
+  }
+
+  /* La etiqueta de la columna, a la izquierda de cada celda. */
+  .tabla-responsiva td[data-etiqueta]::before {
+    content: attr(data-etiqueta);
+    flex-shrink: 0;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--color-neutral-500);
+  }
+
+  /* Título de la tarjeta: primero, a todo lo ancho y sin etiqueta. */
+  .tabla-responsiva td.celda-titulo {
+    order: -1;
+    display: block;
+    margin-bottom: 0.375rem;
+    text-align: left;
+    font-size: 0.9375rem;
+  }
+
+  /* Botones al ancho del renglón, no apretados en la orilla derecha. */
+  .tabla-responsiva td.celda-acciones {
+    order: 1;
+    margin-top: 0.5rem;
+    display: block;
+    text-align: left;
+  }
+
+  .tabla-responsiva td.celda-titulo::before,
+  .tabla-responsiva td.celda-acciones::before {
+    content: none;
+  }
+
+  /* Si no hay nada que tocar —sin permiso, o el renglón de uno mismo— la
+     celda de acciones desaparece en vez de dejar un hueco o un guion suelto. */
+  .tabla-responsiva td.celda-acciones:not(:has(a, button)) {
+    display: none;
+  }
+}

@@ -47,7 +47,7 @@ export default function Consulta() {
   }
 
   return (
-    <div className="mx-auto max-w-xl px-6 py-14">
+    <div className="mx-auto max-w-xl px-4 py-10 sm:px-6 sm:py-14">
       <header className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-guinda">VERIFICENTRO</h1>
         <p className="mt-1 text-sm text-neutral-500">
@@ -55,7 +55,7 @@ export default function Consulta() {
         </p>
       </header>
 
-      <div className="tarjeta p-7">
+      <div className="tarjeta p-5 sm:p-7">
         <h2 className="text-xl font-bold text-guinda-oscuro">
           ¿Cuándo me toca verificar?
         </h2>
@@ -63,7 +63,7 @@ export default function Consulta() {
           Escribe la placa de tu vehículo. No necesitas registrarte.
         </p>
 
-        <form onSubmit={enviar} className="flex gap-3">
+        <form onSubmit={enviar} className="flex flex-col gap-3 sm:flex-row">
           <input
             className="campo uppercase"
             value={placa}
@@ -72,7 +72,7 @@ export default function Consulta() {
             maxLength={15}
             autoFocus
           />
-          <button type="submit" className="boton-principal shrink-0"
+          <button type="submit" className="boton-principal sm:shrink-0"
                   disabled={buscando || placa.trim().length < 4}>
             {buscando ? "Buscando…" : "Consultar"}
           </button>

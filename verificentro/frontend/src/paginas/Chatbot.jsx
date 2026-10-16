@@ -57,7 +57,7 @@ export default function Chatbot() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-guinda-oscuro">Chatbot</h1>
+          <h1 className="text-2xl font-bold text-guinda-oscuro sm:text-3xl">Chatbot</h1>
           <p className="mt-1 max-w-3xl text-sm text-neutral-500">
             Contesta en la página pública, en{" "}
             <code className="rounded bg-crema px-1.5 py-0.5 text-xs">/consulta</code>.
@@ -67,7 +67,7 @@ export default function Chatbot() {
         </div>
         {editable && (
           <button onClick={() => setEditando("nueva")}
-                  className="boton-principal shrink-0">
+                  className="boton-principal w-full sm:w-auto sm:shrink-0">
             Agregar pregunta
           </button>
         )}
@@ -94,7 +94,8 @@ export default function Chatbot() {
             <ul>
               {respuestas.map((r) => (
                 <li key={r.id}
-                    className="flex items-start gap-4 border-t border-borde px-6 py-4">
+                    className="flex flex-col items-start gap-3 border-t border-borde px-6 py-4
+                               sm:flex-row sm:gap-4">
                   <div className="flex-1">
                     <p className="text-sm font-bold">{r.pregunta}</p>
                     <p className="mt-0.5 text-xs text-neutral-500">{r.respuesta}</p>
