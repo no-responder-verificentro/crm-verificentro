@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import Aviso from "../componentes/Aviso";
 import Cargando from "../componentes/Cargando";
 import Indicador from "../componentes/Indicador";
+import Modal from "../componentes/Modal";
 import Pastilla from "../componentes/Pastilla";
 import Vacio from "../componentes/Vacio";
 import { recordatorios as api } from "../api/recursos";
@@ -104,6 +105,7 @@ export default function Recordatorios() {
   }
 
   const [trabajando, setTrabajando] = useState(null);
+  const [probando, setProbando] = useState(false);
 
   async function revisar() {
     setError(null);
@@ -179,6 +181,17 @@ export default function Recordatorios() {
           </div>
         )}
       </div>
+
+      {puede("editar_contacto") && (
+        <div>
+          <button
+            onClick={() => setProbando(true)}
+            className="text-sm font-semibold text-info hover:underline"
+          >
+            Enviar un correo de prueba
+          </button>
+        </div>
+      )}
 
       {aviso && <Aviso tono="exito">{aviso}</Aviso>}
       <Aviso>{error}</Aviso>
@@ -353,6 +366,8 @@ export default function Recordatorios() {
         </div>
       )}
 
+      {probando && <VentanaDePrueba onCerrar={() => setProbando(false)} />}
+
       <div className="rounded-xl border border-dorado/45 bg-dorado-claro px-5 py-4 text-sm">
         <span className="font-bold text-dorado">Nota</span>{" "}
         <span className="text-guinda-oscuro">
@@ -362,6 +377,74 @@ export default function Recordatorios() {
         </span>
       </div>
     </div>
+  );
+}
+
+/**
+ * Ventana para mandar un aviso de ejemplo a donde se le diga.
+ *
+ * Existe para no tener que abrir una terminal. Comprobar que el correo sale
+ * es algo que hace quien administra el verificentro, no quien programó el
+ * sistema, y en una demostración un PowerShell abierto se ve mal.
+ *
+ * Manda un aviso real —con su formato, su botón y su pie—, no un «hola
+ * mundo»: lo que se quiere enseñar es lo que recibe el cliente.
+ */
+function VentanaDePrueba({ onCerrar }) {
+  const [correo, setCorreo] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [resultado, setResultado] = useState(null);
+
+  async function enviar(evento) {
+    evento.preventDefault();
+    setEnviando(true);
+    setResultado(null);
+    try {
+      setResultado(await api.probar(correo.trim()));
+    } catch (e) {
+      setResultado({ enviado: false, detalle: e.message });
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <Modal
+      titulo="Enviar un correo de prueba"
+      descripcion="Manda un aviso de ejemplo, igual al que recibe un cliente. No afecta la cola ni la bitácora."
+      onCerrar={onCerrar}
+    >
+      <form onSubmit={enviar} className="space-y-4">
+        <label className="block">
+          <span className="etiqueta">CORREO DE DESTINO</span>
+          <input
+            type="email"
+            className="campo"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            placeholder="tu.correo@ejemplo.com"
+            required
+            autoFocus
+          />
+        </label>
+
+        {resultado && (
+          <Aviso tono={resultado.enviado ? "exito" : "error"}>
+            {resultado.detalle}
+          </Aviso>
+        )}
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button type="submit" className="boton-principal"
+                  disabled={enviando || !correo.trim()}>
+            {enviando ? "Enviando…" : "Enviar prueba"}
+          </button>
+          <button type="button" className="boton-secundario" onClick={onCerrar}>
+            Cerrar
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 

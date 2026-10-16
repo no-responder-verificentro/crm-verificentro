@@ -12,6 +12,8 @@ from app.dependencias import Sesion, consulta, solo_admin
 from app.dominio.calendario import ventanas_del_anio
 from app.esquemas.recordatorio import (
     ConfiguracionEnvio,
+    PruebaDeCorreo,
+    ResultadoPrueba,
     ResultadoEnvio,
     ResultadoGeneracion,
     MotivoPausa,
@@ -19,9 +21,12 @@ from app.esquemas.recordatorio import (
     RecordatorioPublico,
     ResumenRecordatorios,
 )
+from app.mensajeria import obtener_adaptador
+from app.mensajeria.prueba import armar_mensaje_de_prueba
 from app.modelos.cliente import Cliente, EstadoContacto
 from app.modelos.recordatorio import (
     ENTREGA_FALLIDA,
+    Canal,
     EstadoEntrega,
     EstadoRecordatorio,
     Recordatorio,
@@ -277,3 +282,53 @@ def reintentar(recordatorio_id: int, sesion: Sesion):
     sesion.commit()
     sesion.refresh(recordatorio)
     return recordatorio
+
+
+@router.post("/probar", response_model=ResultadoPrueba,
+             dependencies=[Depends(solo_admin)])
+def probar(datos: PruebaDeCorreo) -> ResultadoPrueba:
+    """Manda un aviso de ejemplo a la dirección que se le indique.
+
+    Es la misma comprobación que hace `python -m jobs.probar_correo`, pero
+    desde la pantalla: quien administra el verificentro no tiene por qué
+    abrir una terminal para saber si el correo está saliendo, y en una
+    demostración tampoco se ve bien.
+
+    Manda un aviso real —con su formato, su botón y su pie—, no un «hola
+    mundo»: la prueba sirve para ver lo que va a recibir el cliente.
+
+    No toca la cola ni la bitácora: no es un recordatorio de nadie.
+    """
+    config = obtener_config()
+
+    if config.proveedor_correo == "consola":
+        return ResultadoPrueba(
+            enviado=False,
+            proveedor="consola",
+            detalle=(
+                "El correo está en modo prueba: se escribe en la bitácora del "
+                "servidor y no sale a ningún lado. Hay que configurar "
+                "PROVEEDOR_CORREO en el servidor."
+            ),
+        )
+
+    try:
+        adaptador = obtener_adaptador(Canal.CORREO)
+    except RuntimeError as exc:
+        return ResultadoPrueba(enviado=False,
+                               proveedor=config.proveedor_correo,
+                               detalle=str(exc))
+
+    resultado = adaptador.enviar(armar_mensaje_de_prueba(datos.correo))
+
+    if resultado.exito:
+        return ResultadoPrueba(
+            enviado=True,
+            proveedor=config.proveedor_correo,
+            detalle=f"Enviado a {datos.correo}. Si no aparece en unos "
+                    "minutos, revisa también la carpeta de spam.",
+        )
+
+    return ResultadoPrueba(enviado=False,
+                           proveedor=config.proveedor_correo,
+                           detalle=resultado.error or "No se pudo enviar.")

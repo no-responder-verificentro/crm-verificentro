@@ -265,13 +265,21 @@ En Render, guardar reinicia el servicio solo.
 
 ## Paso 7 · Probarlo
 
+Lo más fácil es **desde la pantalla**: entra a **Recordatorios** y dale a
+**«Enviar un correo de prueba»**. Escribes la dirección y listo. No toca la
+cola ni la bitácora, y se puede repetir las veces que haga falta —que es lo
+que sirve para enseñarle el sistema a alguien.
+
+Desde la terminal hace exactamente lo mismo:
+
 ```powershell
 cd backend
 .venv\Scripts\activate
 python -m jobs.probar_correo tu.correo@gmail.com
 ```
 
-Manda un aviso real, con su formato y su botón, no un «hola mundo».
+Las dos vías mandan un aviso real, con su formato y su botón, no un «hola
+mundo»: lo que se quiere ver es lo que recibe el cliente.
 
 > **Cada vez que cambies el código del script** hay que volver a
 > **Implementar → Administrar implementaciones → editar → Nueva versión**.

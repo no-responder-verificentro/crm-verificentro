@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.modelos.recordatorio import (
     Canal,
@@ -82,6 +82,18 @@ class ConfiguracionEnvio(BaseModel):
     # False cuando el correo está en modo consola o le falta configuración.
     manda_de_verdad: bool
     motivo: str | None = None
+
+
+class PruebaDeCorreo(BaseModel):
+    """A dónde mandar el correo de ejemplo."""
+
+    correo: EmailStr
+
+
+class ResultadoPrueba(BaseModel):
+    enviado: bool
+    proveedor: str
+    detalle: str
 
 
 class MotivoPausa(BaseModel):

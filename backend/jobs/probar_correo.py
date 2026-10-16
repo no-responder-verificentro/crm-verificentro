@@ -11,13 +11,10 @@ o consola. Si está en consola te lo dice y no finge que mandó nada.
 """
 
 import sys
-from datetime import date
 
 from app.config import obtener_config
-from app.dominio.calendario import ventanas_del_anio
 from app.mensajeria import obtener_adaptador
-from app.mensajeria.base import Mensaje
-from app.mensajeria.plantillas import construir
+from app.mensajeria.prueba import armar_mensaje_de_prueba
 from app.modelos.recordatorio import Canal
 
 
@@ -102,36 +99,17 @@ def main() -> int:
         print(exc)
         return 1
 
-    # El enlace va DIRECTO a la consulta pública. En un recordatorio real pasa
-    # antes por /r/{id}/{firma} para registrar el clic, pero aquí no hay
-    # ningún recordatorio que registrar.
-    enlace = f"{config.url_consulta}?placa=YUN047A"
-
-    # Se manda un aviso real, no un "hola mundo": así se ve cómo le llega al
-    # cliente, con su formato y su botón.
-    _, ventana = ventanas_del_anio(7, date.today().year)
-    contenido = construir(
-        "aviso_2", Canal.CORREO,
-        nombre="Prueba del sistema", placa="YUN-047-A",
-        ventana=ventana, dias_restantes=ventana.dias_restantes(date.today()),
-        enlace=enlace,
-    )
+    # El mismo mensaje que manda el botón de la pantalla, para que las dos
+    # pruebas comprueben exactamente lo mismo.
+    mensaje = armar_mensaje_de_prueba(destino)
 
     print("Enviando…")
-    resultado = adaptador.enviar(Mensaje(
-        destino=destino,
-        asunto=f"[PRUEBA] {contenido.asunto}",
-        cuerpo=contenido.cuerpo,
-        clave_plantilla="aviso_2",
-        enlace=enlace,
-        parrafos=contenido.parrafos,
-        pie=contenido.pie,
-    ))
+    resultado = adaptador.enviar(mensaje)
 
     if resultado.exito:
         print(f"\nEnviado. Revisa la bandeja de {destino}")
         print("Si no aparece en unos minutos, mira también la carpeta de spam.")
-        print(f"\nEl botón del correo lleva a:\n  {enlace}")
+        print(f"\nEl botón del correo lleva a:\n  {mensaje.enlace}")
         return 0
 
     print(f"\nFalló: {resultado.error}")

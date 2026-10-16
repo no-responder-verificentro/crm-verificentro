@@ -556,3 +556,94 @@ class TestReintentar:
                      headers=como_tecnico)
 
         assert r.status_code == 403
+
+
+class TestCorreoDePrueba:
+    """Comprobar que el correo sale, desde la pantalla.
+
+    Antes solo se podía con `python -m jobs.probar_correo` desde una
+    terminal. Quien administra el verificentro no tiene por qué abrir una
+    terminal para eso, y en una demostración frente al dueño se ve mal.
+    """
+
+    RUTA = "/api/v1/recordatorios/probar"
+
+    def test_el_modo_consola_lo_dice_en_vez_de_fingir(self, api, como_admin):
+        """En modo consola no sale nada, y el endpoint tiene que decirlo.
+
+        Reportar «enviado» aquí sería repetir el mismo engaño que nos costó
+        encontrar el problema del correo.
+        """
+        r = api.post(self.RUTA, headers=como_admin,
+                     json={"correo": "alguien@ejemplo.mx"})
+
+        assert r.status_code == 200
+        datos = r.json()
+        assert datos["enviado"] is False
+        assert "modo prueba" in datos["detalle"]
+
+    def test_manda_el_mismo_aviso_que_el_job(self, api, como_admin, monkeypatch):
+        """Los dos caminos tienen que comprobar exactamente lo mismo."""
+        from app.config import obtener_config
+        from app.mensajeria.base import Resultado
+        from app.mensajeria.prueba import armar_mensaje_de_prueba
+
+        monkeypatch.setattr(obtener_config(), "proveedor_correo", "smtp")
+
+        enviados = []
+
+        class Falso:
+            def enviar(self, mensaje):
+                enviados.append(mensaje)
+                return Resultado(exito=True, id_externo="abc")
+
+        monkeypatch.setattr("app.api.v1.recordatorios.obtener_adaptador",
+                            lambda canal: Falso())
+
+        r = api.post(self.RUTA, headers=como_admin,
+                     json={"correo": "zs21016023@estudiantes.uv.mx"})
+
+        assert r.json()["enviado"] is True
+        assert len(enviados) == 1
+        esperado = armar_mensaje_de_prueba("zs21016023@estudiantes.uv.mx")
+        assert enviados[0].asunto == esperado.asunto
+        assert enviados[0].cuerpo == esperado.cuerpo
+        assert enviados[0].destino == "zs21016023@estudiantes.uv.mx"
+
+    def test_un_fallo_del_proveedor_se_ve_tal_cual(self, api, como_admin,
+                                                   monkeypatch):
+        from app.config import obtener_config
+        from app.mensajeria.base import Resultado
+
+        monkeypatch.setattr(obtener_config(), "proveedor_correo", "mailjet")
+
+        class Falso:
+            def enviar(self, mensaje):
+                return Resultado(exito=False, codigo="fallido",
+                                 error="Mailjet bloqueó el mensaje por contenido.")
+
+        monkeypatch.setattr("app.api.v1.recordatorios.obtener_adaptador",
+                            lambda canal: Falso())
+
+        datos = api.post(self.RUTA, headers=como_admin,
+                         json={"correo": "alguien@ejemplo.mx"}).json()
+
+        assert datos["enviado"] is False
+        assert "bloqueó el mensaje" in datos["detalle"]
+
+    def test_un_correo_mal_escrito_se_rechaza(self, api, como_admin):
+        r = api.post(self.RUTA, headers=como_admin, json={"correo": "no-es-correo"})
+
+        assert r.status_code == 422
+
+    def test_no_deja_rastro_en_la_cola(self, api, como_admin, sesion_bd):
+        """No es el recordatorio de nadie: no debe ensuciar la bitácora."""
+        api.post(self.RUTA, headers=como_admin, json={"correo": "a@b.mx"})
+
+        with sesion_bd() as s:
+            assert s.query(Recordatorio).count() == 0
+
+    def test_solo_el_administrador(self, api, como_tecnico):
+        r = api.post(self.RUTA, headers=como_tecnico, json={"correo": "a@b.mx"})
+
+        assert r.status_code == 403

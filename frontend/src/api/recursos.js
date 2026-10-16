@@ -55,6 +55,8 @@ export const recordatorios = {
   // Por dónde están saliendo los mensajes. La pantalla lo usa para avisar
   // cuando el sistema está en modo prueba y en realidad no manda nada.
   configuracion: () => api.obtener("/recordatorios/configuracion"),
+  // Manda un aviso de ejemplo a donde se le diga. No toca la cola.
+  probar: (correo) => api.crear("/recordatorios/probar", { correo }),
   // Los mismos procesos que corren solos cada mañana, disparados a mano.
   generar: (dias = 90) => api.crear(`/recordatorios/generar?dias=${dias}`, {}),
   enviar: () => api.crear("/recordatorios/enviar", {}),
