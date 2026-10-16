@@ -193,19 +193,6 @@ def revisar_correo():
             )
         ok("Configurado por SMTP.")
 
-    if proveedor == "mailjet":
-        if not (config.mailjet_api_key and config.mailjet_api_secret):
-            falla("Faltan MAILJET_API_KEY o MAILJET_API_SECRET.")
-            return
-        ok("Configurado por la API de Mailjet.")
-        if not config.mailjet_webhook_secreto:
-            aviso(
-                "Sin MAILJET_WEBHOOK_SECRETO no hay acuses de entrega.\n"
-                "        Mailjet puede descartar un correo DESPUES de aceptarlo\n"
-                "        —lo que su panel llama 'spam pre-blocked'— y sin el\n"
-                "        webhook eso se ve igual que un envío bueno."
-            )
-
     if proveedor == "apps_script":
         if not config.apps_script_url:
             falla("Falta APPS_SCRIPT_URL. Ver CONECTAR_CORREO.md.")

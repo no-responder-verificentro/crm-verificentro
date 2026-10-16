@@ -48,13 +48,6 @@ services:
         sync: false
       - key: ORIGENES_PERMITIDOS
         sync: false
-      # Solo si PROVEEDOR_CORREO=mailjet. Ver CONECTAR_CORREO.md.
-      - key: MAILJET_API_KEY
-        sync: false
-      - key: MAILJET_API_SECRET
-        sync: false
-      - key: MAILJET_WEBHOOK_SECRETO
-        sync: false
       # Solo si PROVEEDOR_CORREO=apps_script. Ver CONECTAR_CORREO.md.
       - key: APPS_SCRIPT_URL
         sync: false

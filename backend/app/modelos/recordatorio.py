@@ -66,14 +66,7 @@ ORDEN_ENTREGA = {
     EstadoEntrega.LEIDO: 3,
     EstadoEntrega.CLIC: 4,
     # Los finales de fallo no compiten con los de éxito.
-    #
-    # El rebote suave vale lo mismo que ENTREGADO, no que ENVIADO: es
-    # información más nueva que "lo mandamos" y tiene que poder pisarlo —si
-    # no, como el envío siempre deja ENVIADO, el estado nunca se vería y un
-    # buzón lleno se leería en pantalla como un envío bueno—. Pero si el
-    # servidor del destinatario ya lo había aceptado, eso manda: con el mismo
-    # peso, el que llega después no avanza.
-    EstadoEntrega.REBOTE_SUAVE: 2,
+    EstadoEntrega.REBOTE_SUAVE: 1,
     EstadoEntrega.REBOTE_DURO: 5,
     EstadoEntrega.FALLIDO: 5,
     EstadoEntrega.SPAM: 5,

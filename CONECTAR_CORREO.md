@@ -5,9 +5,8 @@ alguien se elige con **una** variable:
 
 ```
 PROVEEDOR_CORREO=consola       # imprime en pantalla. NO manda nada.
-PROVEEDOR_CORREO=mailjet       # API de Mailjet (no su SMTP)
-PROVEEDOR_CORREO=apps_script   # una app web de Google Apps Script
 PROVEEDOR_CORREO=smtp          # servidor de correo clásico
+PROVEEDOR_CORREO=apps_script   # una app web de Google Apps Script
 ```
 
 ---
@@ -32,105 +31,6 @@ otra cosa.
 Desde la versión actual, la pantalla de **Recordatorios** lo avisa con un
 letrero en la parte de arriba cuando el sistema está en modo prueba. Si ves
 ese letrero, no hay nada más que diagnosticar: faltan las variables.
-
----
-
-# Mailjet dice que lo bloqueó por spam
-
-Si en el panel de Mailjet los mensajes aparecen como **blocked** o
-**spam pre-blocked**, el correo **nunca salió**. No está en spam del
-destinatario: Mailjet lo descartó antes de mandarlo porque su filtro decidió
-que el servidor del otro lado lo marcaría.
-
-## Dónde dice por qué
-
-**Mailjet → Statistics → Messages**, y abre el mensaje. La columna de detalle
-trae el motivo exacto. Eso es lo primero que hay que leer; todo lo demás es
-adivinar.
-
-Los motivos que Mailjet lista para un bloqueo son:
-
-- El destinatario reportó antes un correo tuyo como spam.
-- Esa dirección ya rebotó de forma permanente.
-- **El contenido** disparó su escaneo antispam: mayúsculas, mala proporción
-  entre texto e imágenes, palabras típicas de promoción.
-- Duplicados, cuando se usa Mailjet como relevo SMTP.
-
-## Por qué el sistema no marcaba error
-
-Porque estaba saliendo por **SMTP**. Mailjet contesta `250 OK` al recibir el
-mensaje —eso solo significa "lo acepté"— y *después* le pasa su filtro. Para
-cuando lo descarta, nosotros ya habíamos guardado el envío como exitoso.
-
-Visto desde la pantalla era idéntico a un correo que llegó bien.
-
-**Eso ya está arreglado, con dos cambios:**
-
-**1. Se manda por la API, no por SMTP.** La respuesta de la Send API trae el
-resultado de cada mensaje, así que un rechazo se ve en el momento.
-
-**2. Hay un webhook para lo que Mailjet decide después.** Mailjet avisa de
-cada `sent`, `click`, `bounce`, `blocked`, `spam` y `unsub`, y eso llena los
-acuses de la pantalla de Recordatorios. Un bloqueo por contenido ahora
-aparece como **spam**, con el motivo de Mailjet en la fila.
-
-## Cómo conectarlo
-
-**1.** En Mailjet → **Account settings** → **API Key Management**, copia la
-API Key y la Secret Key.
-
-**2.** Genera un secreto para el webhook:
-
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(24))"
-```
-
-**3.** En `backend\.env` y en **Render → Environment**:
-
-```
-PROVEEDOR_CORREO=mailjet
-MAILJET_API_KEY=la-api-key
-MAILJET_API_SECRET=la-secret-key
-MAILJET_WEBHOOK_SECRETO=el-secreto-del-paso-2
-CORREO_REMITENTE=la-direccion-validada-en-mailjet
-```
-
-**4.** En Mailjet → **Account settings** → **Event notifications (webhooks)**,
-da de alta esta dirección para todos los eventos:
-
-```
-https://TU-API.onrender.com/webhooks/mailjet/EL-SECRETO-DEL-PASO-2
-```
-
-El secreto va en la dirección porque Mailjet no firma sus eventos. Sin él,
-cualquiera que conociera la URL podría ensuciar la bitácora de entregas.
-
-**5.** Comprueba:
-
-```powershell
-python -m jobs.probar_correo tu.correo@gmail.com
-```
-
-## Qué hacer si sigue bloqueando por contenido
-
-En orden, lo que más mueve la aguja:
-
-**El remitente tiene que estar validado en Mailjet, y con dominio propio.**
-Mandar desde una dirección `@gmail.com` a través de Mailjet es el caso que
-más se bloquea: la política de Gmail no autoriza a terceros a enviar en su
-nombre, así que la alineación DMARC falla y Mailjet lo sabe antes de
-intentarlo. Con un dominio propio validado en Mailjet —SPF y DKIM, que su
-panel guía paso a paso— esto deja de pasar. Es la solución de verdad.
-
-**El enlace de seguimiento.** El botón del correo no va directo a la
-consulta: pasa por `/r/{id}/{firma}` para registrar el clic. Un redirector
-hacia un dominio de reputación baja —`onrender.com`, `netlify.app`— es un
-patrón que los escaneos castigan. Si el bloqueo persiste, prueba apuntando el
-botón directo a la consulta, aunque se pierda la medición del clic.
-
-**Las mayúsculas.** El encabezado del correo dice `VERIFICENTRO` en
-versalitas y el asunto de prueba lleva `[PRUEBA]`. Son detalles, pero suman
-en el puntaje del escaneo.
 
 ---
 
@@ -259,9 +159,8 @@ Manda un aviso real, con su formato y su botón, no un «hola mundo».
 
 # Opción B · SMTP
 
-Sigue funcionando para Gmail. **Para Mailjet, mejor no**: por SMTP no hay
-forma de enterarse de que descartó el mensaje después de aceptarlo. Es
-exactamente el problema que nos costó encontrar.
+Lo que estaba antes. Sigue funcionando y la cuota es mayor —unos 500 al día
+con Gmail.
 
 ```
 PROVEEDOR_CORREO=smtp
@@ -281,12 +180,9 @@ Con Gmail, `CORREO_REMITENTE` tiene que ser la misma cuenta que
 
 ---
 
-# Si llega pero cae en la carpeta de spam del destinatario
+# Si llega pero cae en spam
 
-Ojo con la diferencia: esto es distinto de que Mailjet lo bloquee. Aquí el
-correo sí salió y sí llegó; el filtro del que recibe lo mandó a spam.
-
-Apps Script y el SMTP de Gmail salen por la misma puerta: la misma cuenta, los mismos
+Apps Script y SMTP salen por la misma puerta: la misma cuenta, los mismos
 servidores de Google, la misma firma de `gmail.com`. Para el filtro del que
 recibe es casi el mismo correo. **Cambiar de uno al otro no arregla el spam.**
 

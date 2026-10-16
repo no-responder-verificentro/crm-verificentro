@@ -53,9 +53,6 @@ def configuracion() -> ConfiguracionEnvio:
         )
     elif proveedor == "smtp" and not config.smtp_host:
         motivo = "Falta configurar el servidor de correo (SMTP_HOST)."
-    elif proveedor == "mailjet" and not (config.mailjet_api_key
-                                         and config.mailjet_api_secret):
-        motivo = "Faltan las credenciales de Mailjet (MAILJET_API_KEY)."
     elif proveedor == "apps_script" and not config.apps_script_url:
         motivo = "Falta la dirección del script de Google (APPS_SCRIPT_URL)."
     elif proveedor == "apps_script" and not config.apps_script_token:

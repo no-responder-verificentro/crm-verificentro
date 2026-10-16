@@ -13,7 +13,6 @@ from app.api.v1 import (
     recordatorios, reportes, verificaciones,
 )
 from app.config import obtener_config
-from app.webhooks import mailjet as webhook_mailjet
 from app.webhooks import whatsapp as webhook_whatsapp
 
 config = obtener_config()
@@ -52,8 +51,6 @@ aplicacion.include_router(v1)
 aplicacion.include_router(enlaces.router)
 # Webhooks: los llama Meta, no la aplicación.
 aplicacion.include_router(webhook_whatsapp.router)
-# Mailjet avisa aquí qué pasó con cada correo después de aceptarlo.
-aplicacion.include_router(webhook_mailjet.router)
 
 
 @aplicacion.get("/salud", tags=["Sistema"])

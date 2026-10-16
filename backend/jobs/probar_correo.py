@@ -32,12 +32,6 @@ def _mostrar_configuracion(config, destino: str) -> None:
     elif config.proveedor_correo == "apps_script":
         print(f"  Script    : {config.apps_script_url or '(vacío)'}")
         print(f"  Token     : {'*' * 8 if config.apps_script_token else '(vacío)'}")
-    elif config.proveedor_correo == "mailjet":
-        print(f"  API key   : {config.mailjet_api_key or '(vacía)'}")
-        print(f"  API secret: {'*' * 8 if config.mailjet_api_secret else '(vacío)'}")
-        print("  Webhook   : "
-              + ("configurado" if config.mailjet_webhook_secreto
-                 else "SIN configurar · sin él no hay acuses de entrega"))
 
     print(f"  Remitente : {config.correo_remitente}")
     print(f"  Destino   : {destino}\n")
@@ -50,19 +44,12 @@ def _revisar_antes_de_enviar(config) -> str | None:
             "PROVEEDOR_CORREO está en 'consola': el sistema imprime los correos\n"
             "en pantalla y NO manda nada, aunque reporte el envío como exitoso.\n"
             "Es justo lo que hace que parezca que se enviaron y no lleguen.\n\n"
-            "Pon PROVEEDOR_CORREO=mailjet, smtp o apps_script.\n"
+            "Pon PROVEEDOR_CORREO=smtp o PROVEEDOR_CORREO=apps_script.\n"
             "El paso a paso está en CONECTAR_CORREO.md."
         )
 
     if config.proveedor_correo == "smtp" and not config.smtp_host:
         return "Falta SMTP_HOST en el .env."
-
-    if (config.proveedor_correo == "mailjet"
-            and not (config.mailjet_api_key and config.mailjet_api_secret)):
-        return (
-            "Faltan MAILJET_API_KEY o MAILJET_API_SECRET en el .env.\n"
-            "Se sacan de Mailjet → Account settings → API Key Management."
-        )
 
     if config.proveedor_correo == "apps_script" and not config.apps_script_url:
         return (
@@ -142,15 +129,6 @@ def main() -> int:
             "contraseña normal de la cuenta. Se genera en:\n"
             "  https://myaccount.google.com/apppasswords\n"
             "Requiere tener activada la verificación en dos pasos."
-        )
-    elif config.proveedor_correo == "mailjet":
-        print(
-            "\nSi Mailjet dice que lo bloqueó por contenido, el correo nunca\n"
-            "salió: su filtro decidió que el servidor del destinatario lo\n"
-            "marcaría como spam. El motivo exacto está en\n"
-            "Mailjet → Statistics → Messages, en la columna de detalle.\n"
-            "\nLo otro que bloquea seguido es mandar desde una dirección que\n"
-            "no esté validada en la cuenta de Mailjet."
         )
     elif config.proveedor_correo == "apps_script":
         print(
