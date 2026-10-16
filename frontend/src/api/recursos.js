@@ -50,6 +50,8 @@ export const recordatorios = {
   pausar: (id, motivo) => api.crear(`/recordatorios/${id}/pausar`, { motivo }),
   reanudar: (id) => api.crear(`/recordatorios/${id}/reanudar`, {}),
   cancelar: (id) => api.crear(`/recordatorios/${id}/cancelar`, {}),
+  // Devuelve a la cola un aviso que falló, para que salga en el próximo envío.
+  reintentar: (id) => api.crear(`/recordatorios/${id}/reintentar`, {}),
   // Por dónde están saliendo los mensajes. La pantalla lo usa para avisar
   // cuando el sistema está en modo prueba y en realidad no manda nada.
   configuracion: () => api.obtener("/recordatorios/configuracion"),

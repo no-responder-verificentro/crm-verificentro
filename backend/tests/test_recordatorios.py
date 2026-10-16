@@ -17,6 +17,7 @@ from app.modelos.recordatorio import (
     EstadoEntrega,
     EstadoRecordatorio,
     Recordatorio,
+    TipoRecordatorio,
 )
 from app.modelos.vehiculo import Resultado, Vehiculo, Verificacion
 from app.servicios import recordatorios as servicio
@@ -468,3 +469,90 @@ class TestConfiguracionDeEnvio:
 
     def test_sin_token_no_hay_acceso(self, api):
         assert api.get(self.RUTA).status_code == 401
+
+
+class TestReintentar:
+    """Un aviso que falló tiene que poder volver a intentarse.
+
+    Sin esto quedaba muerto: `enviar_pendientes` solo mira los que están en
+    PROGRAMADO, así que nada ni nadie volvía a tocarlo. Un fallo pasajero
+    —la red, un tope del proveedor, una credencial que se arregló diez
+    minutos después— se convertía en un cliente que no recibió su aviso y en
+    una fila en pantalla que no se podía hacer nada por ella.
+    """
+
+    def _fallido(self, sesion_bd):
+        with sesion_bd() as s:
+            cliente = crear_cliente(s)
+            vehiculo = crear_vehiculo(s, cliente)
+            r = Recordatorio(
+                vehiculo_id=vehiculo.id, cliente_id=cliente.id,
+                tipo=TipoRecordatorio.VENTANA, aviso_clave="aviso_2",
+                ventana_anio=ANIO, ventana_periodo=2,
+                canal=Canal.CORREO, destino="ana@correo.com",
+                programado_para=datetime(ANIO, 10, 1, 9, 0),
+                estado=EstadoRecordatorio.ERROR,
+                estado_entrega=EstadoEntrega.FALLIDO,
+                motivo_error="You do not have permission",
+                id_externo="algo-viejo",
+                enviado_en=datetime(ANIO, 10, 1, 9, 1),
+            )
+            s.add(r)
+            s.commit()
+            return r.id
+
+    def test_vuelve_a_la_cola_y_sale_ya(self, api, como_admin, sesion_bd):
+        rec = self._fallido(sesion_bd)
+
+        r = api.post(f"/api/v1/recordatorios/{rec}/reintentar", headers=como_admin)
+
+        assert r.status_code == 200
+        with sesion_bd() as s:
+            guardado = s.get(Recordatorio, rec)
+            assert guardado.estado is EstadoRecordatorio.PROGRAMADO
+            assert guardado.estado_entrega is EstadoEntrega.PENDIENTE
+            assert guardado.motivo_error is None
+            # El identificador del intento anterior no sirve para el nuevo:
+            # si se quedara, un acuse viejo podría vincularse con este envío.
+            assert guardado.id_externo is None
+            assert guardado.enviado_en is None
+
+    def test_y_el_job_lo_recoge(self, api, como_admin, sesion_bd):
+        """La prueba que importa: que el reintento de verdad salga."""
+        rec = self._fallido(sesion_bd)
+        api.post(f"/api/v1/recordatorios/{rec}/reintentar", headers=como_admin)
+
+        with sesion_bd() as s:
+            resumen = servicio.enviar_pendientes(s, silencioso=True)
+
+        assert resumen.enviados == 1
+
+    def test_no_se_reintenta_uno_que_salio_bien(self, api, como_admin, sesion_bd):
+        with sesion_bd() as s:
+            cliente = crear_cliente(s)
+            vehiculo = crear_vehiculo(s, cliente)
+            r = Recordatorio(
+                vehiculo_id=vehiculo.id, cliente_id=cliente.id,
+                tipo=TipoRecordatorio.VENTANA, aviso_clave="aviso_2",
+                ventana_anio=ANIO, ventana_periodo=2,
+                canal=Canal.CORREO, destino="ana@correo.com",
+                programado_para=datetime(ANIO, 10, 1, 9, 0),
+                estado=EstadoRecordatorio.ENVIADO,
+                estado_entrega=EstadoEntrega.ENTREGADO,
+            )
+            s.add(r)
+            s.commit()
+            rec = r.id
+
+        respuesta = api.post(f"/api/v1/recordatorios/{rec}/reintentar",
+                             headers=como_admin)
+
+        assert respuesta.status_code == 409
+
+    def test_solo_el_administrador(self, api, como_tecnico, sesion_bd):
+        rec = self._fallido(sesion_bd)
+
+        r = api.post(f"/api/v1/recordatorios/{rec}/reintentar",
+                     headers=como_tecnico)
+
+        assert r.status_code == 403

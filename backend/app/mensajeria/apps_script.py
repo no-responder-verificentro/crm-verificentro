@@ -35,9 +35,26 @@ from app.mensajeria.correo import cuerpo_html
 #: cada envío es una ejecución completa del lado de Google.
 TIEMPO_ESPERA = 60
 
-#: Errores que no son culpa del destinatario. Se marcan como rebote suave
-#: —no como fallo— para que el contacto no se queme por algo pasajero.
-PASAJEROS = ("cuota", "limite", "quota", "limit", "timeout", "temporal")
+#: Errores de configuración: no se arreglan solos y reintentar no sirve de
+#: nada hasta que alguien toque el script. Se revisan ANTES que los pasajeros
+#: porque sus mensajes a veces contienen las mismas palabras —el error de
+#: permisos menciona `getRemainingDailyQuota`, que trae "Quota" dentro— y por
+#: buscar "quota" suelto, un problema permanente se reportaba como
+#: «Rebote temporal», que es justo lo contrario.
+PERMANENTES = (
+    "do not have permission", "no tienes permiso", "permissiondenied",
+    "not authorized", "authorization is required", "invalid email",
+    "invalid argument",
+)
+
+#: Errores que no son culpa del destinatario y sí pueden salir bien después.
+#: Se marcan como rebote suave —no como fallo— para que el contacto no se
+#: queme por algo pasajero.
+PASAJEROS = (
+    "cuota diaria", "daily quota", "quota exceeded", "limit exceeded",
+    "too many times", "rate limit", "timeout", "temporal",
+    "service unavailable",
+)
 
 
 class AppsScriptNoConfigurado(RuntimeError):
@@ -122,13 +139,28 @@ class AdaptadorAppsScript(Adaptador):
                 id_externo=datos.get("id") or uuid.uuid4().hex,
             )
 
-        detalle = str(datos.get("error") or "Error desconocido del script.")
-        pasajero = any(p in detalle.lower() for p in PASAJEROS)
-        return Resultado(
-            exito=False,
-            codigo="rebote_suave" if pasajero else "fallido",
-            error=detalle,
-        )
+        return _clasificar(str(datos.get("error") or "Error desconocido del script."))
+
+
+def _clasificar(detalle: str) -> Resultado:
+    """Decide si el fallo se puede reintentar y, si no, qué hacer al respecto."""
+    texto = detalle.lower()
+
+    if any(p in texto for p in PERMANENTES):
+        pista = ""
+        if "permission" in texto or "permiso" in texto:
+            pista = (
+                " · Al script le faltan permisos de correo. Ejecuta "
+                "'autorizarYProbar' en el editor y vuelve a implementar una "
+                "VERSIÓN NUEVA: la implementación publicada se queda con los "
+                "permisos que tenía al crearse."
+            )
+        return Resultado(exito=False, codigo="fallido", error=detalle + pista)
+
+    if any(p in texto for p in PASAJEROS):
+        return Resultado(exito=False, codigo="rebote_suave", error=detalle)
+
+    return Resultado(exito=False, codigo="fallido", error=detalle)
 
 
 def _explicar_http(codigo: int) -> str:

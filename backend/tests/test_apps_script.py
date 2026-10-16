@@ -214,3 +214,60 @@ def test_acceso_restringido_se_explica(adaptador, mensaje, monkeypatch):
 
     assert not resultado.exito
     assert "Cualquier persona" in resultado.error
+
+
+# ----------------------------------------------- cómo se clasifica el fallo --
+
+class TestClasificacion:
+    """Un fallo de configuración no es un rebote temporal.
+
+    El error de permisos de Google menciona el método
+    `MailApp.getRemainingDailyQuota`, que lleva «Quota» dentro. Buscando la
+    palabra suelta, un problema que solo se arregla tocando el script se
+    reportaba en pantalla como «Rebote temporal», o sea lo contrario de lo
+    que era: ni se reintenta solo, ni se arregla solo.
+    """
+
+    ERROR_DE_PERMISOS = (
+        "Exception: You do not have permission to call "
+        "MailApp.getRemainingDailyQuota. Required permissions: "
+        "https://www.googleapis.com/auth/script.send_mail"
+    )
+
+    def test_el_error_de_permisos_es_definitivo(self, adaptador, mensaje,
+                                                monkeypatch):
+        _responder(monkeypatch, RespuestaFalsa(
+            datos={"ok": False, "error": self.ERROR_DE_PERMISOS}))
+
+        resultado = adaptador.enviar(mensaje)
+
+        assert resultado.codigo == "fallido"
+        assert EstadoEntrega(resultado.codigo) in ENTREGA_FALLIDA
+
+    def test_y_dice_qué_hacer(self, adaptador, mensaje, monkeypatch):
+        """Nombrar el paso que falta ahorra la media hora de buscarlo."""
+        _responder(monkeypatch, RespuestaFalsa(
+            datos={"ok": False, "error": self.ERROR_DE_PERMISOS}))
+
+        error = adaptador.enviar(mensaje).error
+
+        assert "autorizarYProbar" in error
+        assert "VERSIÓN NUEVA" in error
+
+    def test_la_cuota_de_verdad_sigue_siendo_pasajera(self, adaptador, mensaje,
+                                                     monkeypatch):
+        _responder(monkeypatch, RespuestaFalsa(datos={
+            "ok": False,
+            "error": "Se agotó la cuota diaria de correo de Google."}))
+
+        resultado = adaptador.enviar(mensaje)
+
+        assert resultado.codigo == "rebote_suave"
+        assert EstadoEntrega(resultado.codigo) not in ENTREGA_FALLIDA
+
+    def test_un_correo_invalido_no_se_reintenta(self, adaptador, mensaje,
+                                                monkeypatch):
+        _responder(monkeypatch, RespuestaFalsa(datos={
+            "ok": False, "error": "Invalid email: no-es-un-correo"}))
+
+        assert adaptador.enviar(mensaje).codigo == "fallido"

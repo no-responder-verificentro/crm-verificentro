@@ -291,7 +291,7 @@ export default function Recordatorios() {
             "«Enviar ahora».",
         }}
         filas={historial}
-        columnas={["FECHA", "CLIENTE", "PLACA", "CANAL", "AVISO", "ENTREGA"]}
+        columnas={["FECHA", "CLIENTE", "PLACA", "CANAL", "AVISO", "ENTREGA", ""]}
         pintar={(r) => (
           <>
             <td data-etiqueta="FECHA" className="px-6 py-3 font-semibold whitespace-nowrap">
@@ -318,6 +318,17 @@ export default function Recordatorios() {
                 </span>
               )}
             </td>
+            <td className="celda-acciones px-6 py-3 text-right whitespace-nowrap">
+              {puede("editar_contacto") && r.estado === "error" && (
+                <button
+                  onClick={() => accion(api.reintentar, r.id)}
+                  title="Lo devuelve a la cola para que salga con «Enviar ahora»"
+                  className="text-xs font-bold text-info hover:underline"
+                >
+                  Reintentar
+                </button>
+              )}
+            </td>
           </>
         )}
       />
@@ -333,6 +344,11 @@ export default function Recordatorios() {
           </p>
           <p className="mt-1 text-neutral-500">
             Puedes usarlos cuando quieras; no se duplican los avisos.
+          </p>
+          <p className="mt-2 text-neutral-600">
+            <strong>Reintentar</strong>, en los que salieron mal, los devuelve
+            a la cola. Después hay que darle a <strong>Enviar ahora</strong>
+            para que salgan.
           </p>
         </div>
       )}

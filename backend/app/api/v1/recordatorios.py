@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
@@ -241,6 +241,39 @@ def cancelar(recordatorio_id: int, sesion: Sesion):
             detail="Ese recordatorio ya salió; no se puede cancelar.",
         )
     recordatorio.estado = EstadoRecordatorio.CANCELADO
+    sesion.commit()
+    sesion.refresh(recordatorio)
+    return recordatorio
+
+
+@router.post("/{recordatorio_id}/reintentar", response_model=RecordatorioPublico,
+             dependencies=[Depends(solo_admin)])
+def reintentar(recordatorio_id: int, sesion: Sesion):
+    """Devuelve a la cola un aviso que falló, para que salga en el próximo envío.
+
+    Sin esto, un aviso que falla queda muerto: `enviar_pendientes` solo mira
+    los que están en PROGRAMADO, así que nadie volvía a intentarlo nunca. Un
+    fallo pasajero —la red, un tope del proveedor, una credencial que se
+    arregló diez minutos después— se convertía en un cliente que simplemente
+    no recibió su aviso, sin que nadie pudiera hacer nada.
+
+    Se reprograma para AHORA, no para la hora original: la fecha de salida ya
+    pasó y lo que se quiere es que salga en cuanto se le dé a «Enviar ahora».
+    """
+    recordatorio = _obtener(sesion, recordatorio_id)
+
+    if recordatorio.estado is not EstadoRecordatorio.ERROR:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Solo se reintenta un aviso que falló.",
+        )
+
+    recordatorio.estado = EstadoRecordatorio.PROGRAMADO
+    recordatorio.estado_entrega = EstadoEntrega.PENDIENTE
+    recordatorio.motivo_error = None
+    recordatorio.id_externo = None
+    recordatorio.enviado_en = None
+    recordatorio.programado_para = datetime.now(UTC).replace(tzinfo=None)
     sesion.commit()
     sesion.refresh(recordatorio)
     return recordatorio
