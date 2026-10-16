@@ -16,9 +16,14 @@ import pytest
 
 from app.dominio.calendario import fechas_de_aviso, ventanas_del_anio
 from app.mensajeria.base import Mensaje
-from app.mensajeria.whatsapp import AdaptadorWhatsApp, WhatsAppNoConfigurado
+from app.mensajeria.whatsapp import ERRORES, AdaptadorWhatsApp, WhatsAppNoConfigurado
 from app.modelos.cliente import Cliente, EstadoContacto, OrigenConsentimiento
-from app.modelos.recordatorio import Canal, EstadoEntrega, Recordatorio
+from app.modelos.recordatorio import (
+    ENTREGA_FALLIDA,
+    Canal,
+    EstadoEntrega,
+    Recordatorio,
+)
 from app.modelos.vehiculo import Vehiculo
 from app.servicios import recordatorios as servicio
 
@@ -107,10 +112,20 @@ class TestEnvio:
 
     def test_el_limite_de_envios_es_reintentable(self, adaptador, monkeypatch):
         """No es culpa del contacto: marcarlo como fallido definitivo lo
-        quemaría injustamente."""
+        quemaría injustamente.
+
+        Se comprueba contra ENTREGA_FALLIDA y no contra una cadena: lo que
+        importa no es cómo se llame el código, sino que ese estado no cuente
+        para marcar al cliente como no localizable. Antes decía 'reintentar',
+        que no es un EstadoEntrega válido, así que el servicio lo guardaba
+        como 'fallido' y hacía exactamente lo contrario.
+        """
         monkeypatch.setattr(httpx, "post", lambda *a, **k: RespuestaFalsa(
             429, {"error": {"code": 130429, "message": "Rate limit hit"}}))
-        assert adaptador.enviar(_mensaje()).codigo == "reintentar"
+
+        codigo = adaptador.enviar(_mensaje()).codigo
+
+        assert EstadoEntrega(codigo) not in ENTREGA_FALLIDA
 
     def test_si_meta_no_responde_tampoco_se_quema_el_contacto(
         self, adaptador, monkeypatch
@@ -119,8 +134,19 @@ class TestEnvio:
             raise httpx.ConnectError("sin red")
 
         monkeypatch.setattr(httpx, "post", truena)
-        resultado = adaptador.enviar(_mensaje())
-        assert resultado.codigo == "reintentar"
+
+        codigo = adaptador.enviar(_mensaje()).codigo
+
+        assert EstadoEntrega(codigo) not in ENTREGA_FALLIDA
+
+    def test_todo_codigo_de_error_es_un_estado_valido(self):
+        """Un código que no exista en el enum se guarda como 'fallido'.
+
+        Es un fallo silencioso: el adaptador parece distinguir los matices y
+        el servicio los aplana todos al guardarlos.
+        """
+        for numero, (codigo, _) in ERRORES.items():
+            assert EstadoEntrega(codigo), f"código inválido en {numero}"
 
     def test_el_usuario_que_se_dio_de_baja(self, adaptador, monkeypatch):
         monkeypatch.setattr(httpx, "post", lambda *a, **k: RespuestaFalsa(

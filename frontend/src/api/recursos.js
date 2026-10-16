@@ -50,6 +50,9 @@ export const recordatorios = {
   pausar: (id, motivo) => api.crear(`/recordatorios/${id}/pausar`, { motivo }),
   reanudar: (id) => api.crear(`/recordatorios/${id}/reanudar`, {}),
   cancelar: (id) => api.crear(`/recordatorios/${id}/cancelar`, {}),
+  // Por dónde están saliendo los mensajes. La pantalla lo usa para avisar
+  // cuando el sistema está en modo prueba y en realidad no manda nada.
+  configuracion: () => api.obtener("/recordatorios/configuracion"),
   // Los mismos procesos que corren solos cada mañana, disparados a mano.
   generar: (dias = 90) => api.crear(`/recordatorios/generar?dias=${dias}`, {}),
   enviar: () => api.crear("/recordatorios/enviar", {}),

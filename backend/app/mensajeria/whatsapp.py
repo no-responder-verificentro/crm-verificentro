@@ -23,6 +23,12 @@ TIEMPO_ESPERA = 20.0
 
 #: Códigos de error de Meta que conviene distinguir, porque cada uno pide una
 #: acción distinta de nuestro lado.
+#:
+#: El segundo valor del par tiene que ser un EstadoEntrega válido. Los fallos
+#: pasajeros van como 'rebote_suave' a propósito: ese estado queda fuera de
+#: ENTREGA_FALLIDA, así que un límite de envío de Meta no cuenta para marcar
+#: al contacto como no localizable. Un código que no exista en el enum se
+#: guarda como 'fallido' y sí lo quemaría.
 #: https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes
 ERRORES = {
     131026: ("fallido", "El número no tiene WhatsApp o no puede recibir mensajes."),
@@ -34,9 +40,9 @@ ERRORES = {
     132001: ("fallido", "La plantilla no existe o no está aprobada en ese idioma."),
     132015: ("fallido", "La plantilla está pausada por mala calidad."),
     132016: ("fallido", "La plantilla fue deshabilitada por Meta."),
-    130429: ("reintentar", "Se alcanzó el límite de envíos por segundo."),
-    131056: ("reintentar", "Demasiados mensajes a este número en poco tiempo."),
-    80007:  ("reintentar", "Se alcanzó el límite de la cuenta."),
+    130429: ("rebote_suave", "Se alcanzó el límite de envíos por segundo."),
+    131056: ("rebote_suave", "Demasiados mensajes a este número en poco tiempo."),
+    80007:  ("rebote_suave", "Se alcanzó el límite de la cuenta."),
 }
 
 
@@ -110,7 +116,7 @@ class AdaptadorWhatsApp(Adaptador):
         except httpx.HTTPError as exc:
             # Sin respuesta: puede ser la red de aquí. Se marca reintentable
             # para no quemar el contacto por una falla pasajera nuestra.
-            return Resultado(exito=False, codigo="reintentar",
+            return Resultado(exito=False, codigo="rebote_suave",
                              error=f"No se pudo contactar a Meta: {exc}")
 
         datos = _json_seguro(respuesta)

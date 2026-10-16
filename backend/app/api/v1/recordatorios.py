@@ -11,6 +11,7 @@ from app.config import obtener_config
 from app.dependencias import Sesion, consulta, solo_admin
 from app.dominio.calendario import ventanas_del_anio
 from app.esquemas.recordatorio import (
+    ConfiguracionEnvio,
     ResultadoEnvio,
     ResultadoGeneracion,
     MotivoPausa,
@@ -29,6 +30,44 @@ from app.modelos.vehiculo import Vehiculo
 from app.servicios import recordatorios as servicio
 
 router = APIRouter(prefix="/recordatorios", tags=["Recordatorios"])
+
+
+@router.get("/configuracion", response_model=ConfiguracionEnvio,
+            dependencies=[Depends(consulta)])
+def configuracion() -> ConfiguracionEnvio:
+    """Por dónde salen los mensajes ahora mismo.
+
+    La pantalla lo usa para avisar cuando el sistema está en modo prueba. No
+    devuelve ninguna credencial: solo el nombre del proveedor y si está en
+    condiciones de mandar.
+    """
+    config = obtener_config()
+    proveedor = config.proveedor_correo
+    motivo = None
+
+    if proveedor == "consola":
+        motivo = (
+            "El correo está en modo prueba: los mensajes se escriben en la "
+            "bitácora del servidor y no salen a ningún lado, aunque el acuse "
+            "diga «enviado»."
+        )
+    elif proveedor == "smtp" and not config.smtp_host:
+        motivo = "Falta configurar el servidor de correo (SMTP_HOST)."
+    elif proveedor == "mailjet" and not (config.mailjet_api_key
+                                         and config.mailjet_api_secret):
+        motivo = "Faltan las credenciales de Mailjet (MAILJET_API_KEY)."
+    elif proveedor == "apps_script" and not config.apps_script_url:
+        motivo = "Falta la dirección del script de Google (APPS_SCRIPT_URL)."
+    elif proveedor == "apps_script" and not config.apps_script_token:
+        motivo = "Falta el token del script de Google (APPS_SCRIPT_TOKEN)."
+
+    return ConfiguracionEnvio(
+        canales_activos=list(config.canales_activos),
+        proveedor_correo=proveedor,
+        remitente=config.correo_remitente,
+        manda_de_verdad=motivo is None,
+        motivo=motivo,
+    )
 
 
 def _a_fila(sesion, recordatorio: Recordatorio) -> RecordatorioEnLista:

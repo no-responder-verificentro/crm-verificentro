@@ -53,6 +53,7 @@ export default function Recordatorios() {
   const { puede } = useSesion();
 
   const [resumen, setResumen] = useState(null);
+  const [config, setConfig] = useState(null);
   const [cola, setCola] = useState([]);
   const [historial, setHistorial] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -61,14 +62,16 @@ export default function Recordatorios() {
   const cargar = useCallback(async () => {
     setError(null);
     try {
-      const [r, c, h] = await Promise.all([
+      const [r, c, h, cfg] = await Promise.all([
         api.resumen(),
         api.cola(24 * 30),
         api.historial(50),
+        api.configuracion(),
       ]);
       setResumen(r);
       setCola(c);
       setHistorial(h);
+      setConfig(cfg);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -158,6 +161,8 @@ export default function Recordatorios() {
       </div>
 
       <Aviso>{error}</Aviso>
+
+      {config && !config.manda_de_verdad && <ModoPrueba config={config} />}
 
       {resumen && (
         <>
@@ -319,6 +324,32 @@ export default function Recordatorios() {
           contacto como no localizable y deja de gastarle mensajes.
         </span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Letrero de modo prueba.
+ *
+ * Existe por un día entero perdido: con PROVEEDOR_CORREO=consola el sistema
+ * escribe los correos en la bitácora del servidor y reporta el envío como
+ * exitoso. En esta pantalla se veía idéntico a un envío real —acuse en
+ * «Enviado» y todo— mientras en la bandeja del cliente no llegaba nada, ni a
+ * spam. Desde afuera era imposible de distinguir, y ese es justo el tipo de
+ * falla que no debe ser silenciosa.
+ */
+function ModoPrueba({ config }) {
+  return (
+    <div className="rounded-xl border border-alerta/45 bg-alerta/10 px-5 py-4">
+      <p className="text-sm font-bold text-alerta">
+        Los avisos no están saliendo de verdad
+      </p>
+      <p className="mt-1 text-sm text-guinda-oscuro">{config.motivo}</p>
+      <p className="mt-2 text-xs text-neutral-600">
+        Mientras siga así, los acuses de abajo dicen «Enviado» pero nadie
+        recibe nada. Se corrige con las variables del servidor; el paso a paso
+        está en <strong>CONECTAR_CORREO.md</strong>.
+      </p>
     </div>
   );
 }

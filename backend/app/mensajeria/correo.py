@@ -26,11 +26,14 @@ class CorreoNoConfigurado(RuntimeError):
     pass
 
 
-def _a_html(mensaje: Mensaje) -> str:
+def cuerpo_html(mensaje: Mensaje) -> str:
     """Arma la versión HTML.
 
     El enlace NO va como texto: aquí se convierte en botón. Si apareciera de
     las dos formas, el correo se ve repetido.
+
+    Vive aquí pero la usan los dos adaptadores de correo —SMTP y Apps
+    Script—, para que el correo se vea igual salga por donde salga.
     """
     piezas = mensaje.parrafos or tuple(
         p for p in mensaje.cuerpo.split("\n\n") if p.strip()
@@ -72,6 +75,10 @@ def _a_html(mensaje: Mensaje) -> str:
     )
 
 
+#: Nombre anterior. Se conserva para no romper lo que ya lo importaba.
+_a_html = cuerpo_html
+
+
 class AdaptadorCorreo(Adaptador):
     nombre = "correo"
 
@@ -107,7 +114,7 @@ class AdaptadorCorreo(Adaptador):
         correo["List-Unsubscribe"] = f"<mailto:{self.remitente}?subject=BAJA>"
 
         correo.set_content(mensaje.cuerpo)
-        correo.add_alternative(_a_html(mensaje), subtype="html")
+        correo.add_alternative(cuerpo_html(mensaje), subtype="html")
 
         try:
             with self._conectar() as servidor:

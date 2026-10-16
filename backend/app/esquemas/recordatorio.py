@@ -67,6 +67,23 @@ class ResultadoEnvio(BaseModel):
     contactos_marcados: int = 0
 
 
+class ConfiguracionEnvio(BaseModel):
+    """Por dónde están saliendo los mensajes, para decirlo en pantalla.
+
+    Existe porque el modo consola reporta los envíos como exitosos sin mandar
+    nada. Visto desde la pantalla era indistinguible de un envío real, y eso
+    convierte una variable sin capturar en horas de buscar el error en el
+    lugar equivocado.
+    """
+
+    canales_activos: list[str]
+    proveedor_correo: str
+    remitente: str
+    # False cuando el correo está en modo consola o le falta configuración.
+    manda_de_verdad: bool
+    motivo: str | None = None
+
+
 class MotivoPausa(BaseModel):
     motivo: str | None = Field(default=None, max_length=160)
 

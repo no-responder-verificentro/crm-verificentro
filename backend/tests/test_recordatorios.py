@@ -396,3 +396,75 @@ class TestCanalesActivos:
         r = self._generar(Sesion)
         assert r.creados == 0
         assert r.sin_consentimiento == 1
+
+
+class TestConfiguracionDeEnvio:
+    """La pantalla necesita poder decir «esto no está saliendo de verdad».
+
+    Con PROVEEDOR_CORREO=consola el sistema imprime los correos en la bitácora
+    del servidor y reporta el envío como exitoso. Desde la pantalla eso era
+    idéntico a un envío real —acuse en «Enviado» incluido— mientras en la
+    bandeja del cliente no llegaba nada, ni a spam. Este endpoint es lo que
+    permite distinguirlos.
+    """
+
+    RUTA = "/api/v1/recordatorios/configuracion"
+
+    def test_el_modo_consola_se_reporta_como_que_no_manda(self, api, como_admin):
+        from app.config import obtener_config
+
+        obtener_config.cache_clear()
+        r = api.get(self.RUTA, headers=como_admin)
+
+        assert r.status_code == 200
+        datos = r.json()
+        assert datos["proveedor_correo"] == "consola"
+        assert datos["manda_de_verdad"] is False
+        assert "modo prueba" in datos["motivo"]
+
+    def test_apps_script_sin_token_no_manda(self, api, como_admin, monkeypatch):
+        from app.config import obtener_config
+
+        config = obtener_config()
+        monkeypatch.setattr(config, "proveedor_correo", "apps_script")
+        monkeypatch.setattr(
+            config, "apps_script_url",
+            "https://script.google.com/macros/s/AK/exec",
+        )
+        monkeypatch.setattr(config, "apps_script_token", "")
+
+        datos = api.get(self.RUTA, headers=como_admin).json()
+
+        assert datos["manda_de_verdad"] is False
+        assert "APPS_SCRIPT_TOKEN" in datos["motivo"]
+
+    def test_bien_configurado_no_avisa_nada(self, api, como_admin, monkeypatch):
+        from app.config import obtener_config
+
+        config = obtener_config()
+        monkeypatch.setattr(config, "proveedor_correo", "apps_script")
+        monkeypatch.setattr(
+            config, "apps_script_url",
+            "https://script.google.com/macros/s/AK/exec",
+        )
+        monkeypatch.setattr(config, "apps_script_token", "secreto")
+
+        datos = api.get(self.RUTA, headers=como_admin).json()
+
+        assert datos["manda_de_verdad"] is True
+        assert datos["motivo"] is None
+
+    def test_no_devuelve_ninguna_credencial(self, api, como_admin, monkeypatch):
+        """Lo ve cualquier empleado con permiso de consulta, no solo el admin."""
+        from app.config import obtener_config
+
+        config = obtener_config()
+        monkeypatch.setattr(config, "apps_script_token", "token-secretisimo")
+        monkeypatch.setattr(config, "smtp_contrasena", "contrasena-secretisima")
+
+        cuerpo = api.get(self.RUTA, headers=como_admin).text
+
+        assert "secretisim" not in cuerpo
+
+    def test_sin_token_no_hay_acceso(self, api):
+        assert api.get(self.RUTA).status_code == 401

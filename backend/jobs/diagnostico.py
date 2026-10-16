@@ -147,8 +147,87 @@ def revisar_esquema():
         falla(f"No se pudo revisar: {type(exc).__name__}: {exc}")
 
 
+def revisar_correo():
+    """Por dónde van a salir los mensajes.
+
+    Va aquí porque el modo consola reporta los envíos como exitosos sin
+    mandar nada, y visto desde la pantalla es indistinguible de un envío
+    real. Es la primera explicación a revisar cuando el sistema dice
+    "enviado" y no llega nada, ni a spam.
+    """
+    titulo("6. Correo")
+    try:
+        from app.config import obtener_config
+
+        config = obtener_config()
+    except Exception as exc:
+        falla(f"No se pudo leer la configuración: {exc}")
+        return
+
+    proveedor = config.proveedor_correo
+    print(f"  Proveedor : {proveedor}")
+    print(f"  Remitente : {config.correo_remitente}")
+    print(f"  Canales   : {', '.join(config.canales_activos) or '(ninguno)'}")
+
+    if proveedor == "consola":
+        falla(
+            "MODO PRUEBA. Los correos se imprimen en pantalla y NO se mandan,\n"
+            "        aunque el sistema los reporte como enviados.\n"
+            "        Pon PROVEEDOR_CORREO=smtp o apps_script. Ver CONECTAR_CORREO.md."
+        )
+        return
+
+    if proveedor == "smtp":
+        if not config.smtp_host:
+            falla("Falta SMTP_HOST.")
+            return
+        print(f"  Servidor  : {config.smtp_host}:{config.smtp_puerto}")
+        if not config.smtp_contrasena:
+            falla("Falta SMTP_CONTRASENA.")
+            return
+        if (config.correo_remitente.endswith("@gmail.com")
+                and config.smtp_usuario != config.correo_remitente):
+            aviso(
+                "Con Gmail, CORREO_REMITENTE debe ser la misma cuenta que\n"
+                "        SMTP_USUARIO, o Google reescribe el remitente."
+            )
+        ok("Configurado por SMTP.")
+
+    if proveedor == "mailjet":
+        if not (config.mailjet_api_key and config.mailjet_api_secret):
+            falla("Faltan MAILJET_API_KEY o MAILJET_API_SECRET.")
+            return
+        ok("Configurado por la API de Mailjet.")
+        if not config.mailjet_webhook_secreto:
+            aviso(
+                "Sin MAILJET_WEBHOOK_SECRETO no hay acuses de entrega.\n"
+                "        Mailjet puede descartar un correo DESPUES de aceptarlo\n"
+                "        —lo que su panel llama 'spam pre-blocked'— y sin el\n"
+                "        webhook eso se ve igual que un envío bueno."
+            )
+
+    if proveedor == "apps_script":
+        if not config.apps_script_url:
+            falla("Falta APPS_SCRIPT_URL. Ver CONECTAR_CORREO.md.")
+            return
+        print(f"  Script    : {config.apps_script_url}")
+        if not config.apps_script_url.endswith("/exec"):
+            falla(
+                "La dirección debe terminar en /exec. La de /dev es la de\n"
+                "        pruebas y solo responde con tu sesión abierta."
+            )
+            return
+        if not config.apps_script_token:
+            falla("Falta APPS_SCRIPT_TOKEN.")
+            return
+        ok("Configurado por Google Apps Script.")
+
+    print("\n  Para comprobar que de verdad llega:")
+    print("      python -m jobs.probar_correo tu.correo@gmail.com")
+
+
 def revisar_aplicacion():
-    titulo("6. Aplicación")
+    titulo("7. Aplicación")
     try:
         from app.main import aplicacion
 
@@ -160,7 +239,7 @@ def revisar_aplicacion():
 
 
 def revisar_puerto(puerto=8000):
-    titulo(f"7. Puerto {puerto}")
+    titulo(f"8. Puerto {puerto}")
     prueba = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         prueba.bind(("127.0.0.1", puerto))
@@ -176,7 +255,7 @@ def revisar_puerto(puerto=8000):
 
 
 def revisar_uvicorn():
-    titulo("8. Uvicorn")
+    titulo("9. Uvicorn")
     try:
         import uvicorn
 
@@ -212,6 +291,7 @@ def main() -> int:
     revisar_configuracion()
     revisar_base_de_datos()
     revisar_esquema()
+    revisar_correo()
     revisar_aplicacion()
     revisar_puerto()
     revisar_uvicorn()

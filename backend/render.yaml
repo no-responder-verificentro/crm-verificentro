@@ -23,6 +23,9 @@ services:
         value: produccion
       - key: CANALES_ACTIVOS
         value: '["correo"]'
+      # OJO: si esta variable falta, el valor por omisión es 'consola', que
+      # imprime los correos en la bitácora y NO manda nada aunque reporte el
+      # envío como exitoso. La pantalla de Recordatorios lo avisa.
       - key: PROVEEDOR_CORREO
         value: smtp
       - key: SMTP_HOST
@@ -44,4 +47,16 @@ services:
       - key: URL_CONSULTA
         sync: false
       - key: ORIGENES_PERMITIDOS
+        sync: false
+      # Solo si PROVEEDOR_CORREO=mailjet. Ver CONECTAR_CORREO.md.
+      - key: MAILJET_API_KEY
+        sync: false
+      - key: MAILJET_API_SECRET
+        sync: false
+      - key: MAILJET_WEBHOOK_SECRETO
+        sync: false
+      # Solo si PROVEEDOR_CORREO=apps_script. Ver CONECTAR_CORREO.md.
+      - key: APPS_SCRIPT_URL
+        sync: false
+      - key: APPS_SCRIPT_TOKEN
         sync: false

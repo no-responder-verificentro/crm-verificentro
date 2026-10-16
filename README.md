@@ -1,14 +1,15 @@
-# CRM Verificentro 
+# CRM Verificentro
 
 Sistema de seguimiento y recordatorios de verificación vehicular.
 
 ```
 COMO_EJECUTAR.md        cómo prender cada cosa en tu computadora
 DESPLIEGUE.md           subirlo a Aiven + Render + Netlify, gratis
+CONECTAR_CORREO.md      por dónde salen los correos, y por qué no llegan
 SUBIR_A_PRODUCCION.md   Git, y la alternativa de montarlo en el local
 CONECTAR_WHATSAPP.md    el trámite con Meta, cuando lo decidan
 db/schema.sql           base de datos MySQL
-backend/                API en Python (FastAPI) — 308 pruebas
+backend/                API en Python (FastAPI) — 351 pruebas
 frontend/               interfaz en React
 ```
 
