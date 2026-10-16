@@ -34,7 +34,10 @@ export default function Citas() {
   const { puede } = useSesion();
 
   const [fecha, setFecha] = useState(HOY);
-  const [agenda, setAgenda] = useState([]);
+  // null = todavía no se sabe. Es distinto de [] —que significa «no hay
+  // citas»— y la diferencia importa: si la consulta falla, la pantalla no
+  // debe afirmar que el día está libre.
+  const [agenda, setAgenda] = useState(null);
   const [libres, setLibres] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -52,6 +55,10 @@ export default function Citas() {
       setAgenda(lista);
       setLibres(disponibilidad);
     } catch (e) {
+      // Se limpian los dos: dejar los de la consulta anterior en pantalla
+      // mientras se muestra un error es peor que no mostrar nada.
+      setAgenda(null);
+      setLibres(null);
       setError(e.message);
     } finally {
       setCargando(false);
@@ -73,7 +80,9 @@ export default function Citas() {
     }
   }
 
-  const activas = agenda.filter((c) => ["agendada", "confirmada"].includes(c.estado));
+  const activas = (agenda || []).filter(
+    (c) => ["agendada", "confirmada"].includes(c.estado)
+  );
 
   return (
     <div className="space-y-5">
@@ -97,6 +106,10 @@ export default function Citas() {
 
       {cargando ? (
         <Cargando />
+      ) : agenda === null ? (
+        // La consulta falló. Mostrar «Sin citas este día» aquí sería mentir:
+        // no se sabe qué hay. El aviso de error de arriba es la respuesta.
+        null
       ) : (
         <>
           <HorariosLibres

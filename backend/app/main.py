@@ -6,7 +6,6 @@ Documentación interactiva en http://localhost:8000/docs
 """
 
 import logging
-import traceback
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,15 +47,36 @@ aplicacion = FastAPI(
 async def errores_con_cors(request: Request, siguiente):
     try:
         return await siguiente(request)
-    except Exception:
+    except Exception as exc:
         # El rastro completo va a la bitácora del servidor —en Render, a Logs—
         # porque es donde hay que leerlo; al navegador no se le manda.
         registro.exception("Error no capturado en %s %s",
                            request.method, request.url.path)
         detalle = "El servidor tuvo un problema. Revisa la bitácora."
         if not config.es_produccion:
-            detalle = traceback.format_exc().strip().splitlines()[-1]
+            detalle = resumen_del_error(exc)
         return JSONResponse(status_code=500, content={"detail": detalle})
+
+
+def resumen_del_error(exc: BaseException) -> str:
+    """Una línea que de verdad diga qué pasó.
+
+    Antes esto tomaba la ÚLTIMA línea del traceback, y para un error de
+    SQLAlchemy esa línea es siempre la misma y no dice nada:
+
+        (Background on this error at: https://sqlalche.me/e/21/e3q8)
+
+    O sea que el único mensaje que llegaba a la pantalla era un enlace a la
+    documentación de SQLAlchemy. La línea útil —«Unknown column X», «Access
+    denied», «Can't connect»— es la PRIMERA.
+    """
+    texto = str(exc).strip()
+    utiles = [
+        linea.strip() for linea in texto.splitlines()
+        if linea.strip() and not linea.strip().startswith("(Background on this error")
+    ]
+    primera = utiles[0] if utiles else texto or "sin mensaje"
+    return f"{type(exc).__name__}: {primera}"[:300]
 
 
 aplicacion.add_middleware(

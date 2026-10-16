@@ -9,7 +9,7 @@ CONECTAR_CORREO.md      por dónde salen los correos, y por qué no llegan
 SUBIR_A_PRODUCCION.md   Git, y la alternativa de montarlo en el local
 CONECTAR_WHATSAPP.md    el trámite con Meta, cuando lo decidan
 db/schema.sql           base de datos MySQL
-backend/                API en Python (FastAPI) — 370 pruebas
+backend/                API en Python (FastAPI) — 374 pruebas
 frontend/               interfaz en React
 ```
 

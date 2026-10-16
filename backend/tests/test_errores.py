@@ -85,3 +85,45 @@ def test_salud_sigue_respondiendo(cliente):
 
     assert r.status_code == 200
     assert r.json()["estado"] == "ok"
+
+
+class TestResumenDelError:
+    """El mensaje que llega al navegador tiene que decir algo.
+
+    SQLAlchemy cierra todos sus errores con la misma línea:
+
+        (Background on this error at: https://sqlalche.me/e/21/e3q8)
+
+    Tomando la última línea del traceback, eso era literalmente lo único que
+    se veía en pantalla: un enlace a la documentación de SQLAlchemy, igual
+    para una columna que falta que para una base caída. La línea que sirve es
+    la primera.
+    """
+
+    def test_descarta_el_pie_de_sqlalchemy(self):
+        from sqlalchemy.exc import OperationalError
+
+        error = OperationalError(
+            "SELECT config_citas.bloques_por_cita FROM config_citas",
+            {},
+            Exception('(1054, "Unknown column \'config_citas.bloques_por_cita\'")'),
+        )
+
+        resumen = principal.resumen_del_error(error)
+
+        assert "Unknown column" in resumen
+        assert "Background on this error" not in resumen
+
+    def test_nombra_el_tipo_de_error(self):
+        resumen = principal.resumen_del_error(ValueError("algo salió mal"))
+
+        assert resumen.startswith("ValueError:")
+        assert "algo salió mal" in resumen
+
+    def test_una_excepcion_sin_mensaje_no_truena(self):
+        assert principal.resumen_del_error(RuntimeError())
+
+    def test_no_se_desborda(self):
+        resumen = principal.resumen_del_error(ValueError("x" * 5000))
+
+        assert len(resumen) <= 300
