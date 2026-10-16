@@ -35,8 +35,8 @@ function doPost(e) {
       return responder({ ok: false, error: 'Falta el destinatario.' });
     }
 
-    const restantes = MailApp.getRemainingDailyQuota();
-    if (restantes <= 0) {
+    const restantes = cuotaRestante();
+    if (restantes === 0) {
       // 'cuota' en el texto hace que el sistema lo trate como fallo pasajero
       // y no queme al contacto. No cambies esa palabra.
       return responder({
@@ -57,7 +57,7 @@ function doPost(e) {
     return responder({
       ok: true,
       id: Utilities.getUuid(),
-      restantes: restantes - 1,
+      restantes: restantes === null ? null : restantes - 1,
     });
 
   } catch (error) {
@@ -67,15 +67,55 @@ function doPost(e) {
 
 
 /**
+ * Cuánto queda de la cuota diaria, o null si no se puede averiguar.
+ *
+ * Consultar la cuota exige el mismo permiso que mandar correo, y hay un caso
+ * en que Google lo niega: cuando la implementación publicada se creó ANTES de
+ * que autorizaras el script, se queda con los permisos de aquel momento. El
+ * síntoma es este error:
+ *
+ *     You do not have permission to call MailApp.getRemainingDailyQuota
+ *
+ * Esto no es esencial —es una red de seguridad— así que si falla se sigue
+ * adelante y que el envío diga lo suyo. Antes, un permiso faltante aquí
+ * tumbaba el envío entero en un punto que no tenía nada que ver.
+ */
+function cuotaRestante() {
+  try {
+    return MailApp.getRemainingDailyQuota();
+  } catch (error) {
+    return null;
+  }
+}
+
+
+/**
  * Abrir la dirección del script en el navegador cae aquí. Sirve para
  * comprobar de un vistazo que quedó publicado, sin mandar nada.
+ *
+ * Todo lo que puede fallar por permisos va protegido: esta página tiene que
+ * poder contestar sobre todo cuando algo está mal configurado, que es cuando
+ * uno la abre.
  */
 function doGet() {
+  var cuenta = null;
+  try {
+    cuenta = Session.getEffectiveUser().getEmail();
+  } catch (error) {
+    cuenta = '(sin permiso para saberlo)';
+  }
+
+  const restantes = cuotaRestante();
+
   return responder({
     ok: true,
     servicio: 'Puente de correo · CRM Verificentro',
-    cuenta: Session.getEffectiveUser().getEmail(),
-    restantes_hoy: MailApp.getRemainingDailyQuota(),
+    cuenta: cuenta,
+    restantes_hoy: restantes,
+    permisos_de_correo: restantes === null
+      ? 'FALTAN. Ejecuta autorizarYProbar y vuelve a implementar una VERSIÓN NUEVA.'
+      : 'correctos',
+    token_configurado: TOKEN !== 'CAMBIA-ESTO-POR-UNA-CADENA-LARGA-Y-UNICA',
     maximo_recomendado: MAXIMO_POR_DIA,
   });
 }

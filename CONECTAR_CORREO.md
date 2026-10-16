@@ -174,12 +174,32 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 Pégala entre las comillas y guarda. **Anótala**, la vas a necesitar en el
-paso 5.
+paso 6.
 
 No es un trámite: sin token, cualquiera que descubra la dirección del script
 podría mandar correo a nombre del verificentro.
 
-## Paso 3 · Autorizarlo
+## Paso 3 · Declarar los permisos
+
+Este paso evita el error más común al conectar Apps Script.
+
+En el editor, **Configuración del proyecto** (el engrane de la izquierda) →
+marca **«Mostrar el archivo de manifiesto appsscript.json en el editor»**.
+
+Vuelve al editor: ahora aparece `appsscript.json` junto a `Codigo.gs`. Pega
+ahí el contenido de `backend/integraciones/apps_script/appsscript.json`.
+
+Lo que hace es nombrar explícitamente los permisos que el script necesita.
+Sin eso, Google los deduce leyendo el código, y esa deducción se queda fija
+en el momento en que autorizas: si después cambias el código, los permisos
+que pide pueden no coincidir con los que te dieron. De ahí sale esto:
+
+```
+You do not have permission to call MailApp.getRemainingDailyQuota.
+Required permissions: .../auth/script.send_mail
+```
+
+## Paso 4 · Autorizarlo
 
 En el selector de funciones de arriba elige **`autorizarYProbar`** y dale
 **Ejecutar**.
@@ -194,9 +214,12 @@ Al terminar debe llegarte un correo de prueba a ti mismo.
 **Este paso no se salta.** Sin autorizar, el script contesta con una página
 HTML en lugar de JSON y el sistema reporta *"el script no respondió en JSON"*.
 
-## Paso 4 · Publicarlo
+## Paso 5 · Publicarlo
 
 **Implementar** → **Nueva implementación** → el engrane → **Aplicación web**.
+
+Hazlo DESPUÉS de autorizar, no antes: la implementación se queda con los
+permisos que había cuando se creó.
 
 | Campo | Valor |
 |---|---|
@@ -224,7 +247,7 @@ Compruébalo pegándola en el navegador: debe contestar algo como
  "cuenta":"no.responder.verificentro@gmail.com","restantes_hoy":100}
 ```
 
-## Paso 5 · Conectarlo al sistema
+## Paso 6 · Conectarlo al sistema
 
 En `backend\.env` y en **Render → Environment**, las mismas cuatro:
 
@@ -240,7 +263,7 @@ lo pone Google y es la cuenta dueña del script.
 
 En Render, guardar reinicia el servicio solo.
 
-## Paso 6 · Probarlo
+## Paso 7 · Probarlo
 
 ```powershell
 cd backend
@@ -254,6 +277,27 @@ Manda un aviso real, con su formato y su botón, no un «hola mundo».
 > **Implementar → Administrar implementaciones → editar → Nueva versión**.
 > Guardar no basta: la dirección `/exec` sigue sirviendo la versión anterior.
 > Es lo que más confunde de Apps Script.
+
+## Si sale «You do not have permission to call MailApp...»
+
+Al script le faltan los permisos de correo. Pasa cuando la implementación
+publicada se creó **antes** de que lo autorizaras: se quedó con los permisos
+de aquel momento, y autorizar después no la actualiza sola.
+
+En este orden:
+
+1. Pega el `appsscript.json` del paso 3, si no lo habías hecho.
+2. Ejecuta **`autorizarYProbar`** desde el editor y acepta la pantalla de
+   permisos completa. Tiene que llegarte un correo de prueba a ti mismo.
+3. **Implementar → Administrar implementaciones → el lápiz → Versión: Nueva
+   versión → Implementar.** Este paso es el que casi siempre falta.
+4. Abre la dirección `/exec` en el navegador. Debe decir
+   `"permisos_de_correo": "correctos"`.
+
+Si en el punto 2 Google no te muestra la pantalla de permisos porque cree que
+ya autorizaste, quítale el acceso y vuelve a empezar: en
+<https://myaccount.google.com/permissions>, busca el proyecto y elimina su
+acceso. La próxima ejecución te lo volverá a pedir, ya con la lista completa.
 
 ---
 
